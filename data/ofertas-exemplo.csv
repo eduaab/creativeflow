@@ -1,0 +1,5 @@
+sku;praca;preco;preco_de;inicio;fim;condicoes;status
+SKU-1003;CE;57,90;74,90;2026-10-20;2026-11-30;ou enquanto durarem os estoques;ativa
+SKU-1002;BA;23,90;31,90;2026-10-20;2026-11-30;ou enquanto durarem os estoques;ativa
+SKU-1001;PE;21,90;29,90;2026-10-20;2026-11-30;ou enquanto durarem os estoques;ativa
+SKU-9999;PE;10,00;;2026-10-20;2026-11-30;;ativa
