@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply text-slate-800 antialiased; }
+  h1, h2, h3 { @apply font-display; }
+}
+@layer components {
+  .card { @apply bg-white rounded-xl border border-slate-200; }
+  .input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50 disabled:text-slate-500; }
+  .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition; }
+  .checker { background-image: linear-gradient(45deg,#e2e8f0 25%,transparent 25%),linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2e8f0 75%),linear-gradient(-45deg,transparent 75%,#e2e8f0 75%); background-size: 20px 20px; background-position: 0 0,0 10px,10px -10px,-10px 0; }
+}
