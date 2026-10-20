@@ -1,0 +1,35 @@
+# Sobe o protótipo com Postgres real (em vez do PGlite embutido).
+#   docker compose up --build   →  http://localhost:3001
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: creativeflow
+      POSTGRES_PASSWORD: creativeflow
+      POSTGRES_DB: creativeflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creativeflow"]
+      interval: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://creativeflow:creativeflow@db:5432/creativeflow
+      APP_PUBLIC_URL: http://localhost:3001
+    volumes:
+      - exports:/app/data
+
+volumes:
+  pgdata:
+  exports:
