@@ -1,0 +1,79 @@
+import type { Briefing, Concept, CopyVariant, CreativeDoc, FormatSpec, Product, RulesConfig, Segment } from '@cf/shared';
+import { z } from 'zod';
+
+export interface ConceptInput {
+  briefing: Briefing;
+  products: Product[];
+  segments: Segment[];
+  rules: RulesConfig;
+  learnings: string[];
+  previous?: Concept;
+  feedback?: string;
+}
+
+export interface LayerSummary {
+  id: string;
+  role: string;
+  kind: string;
+  text?: string;
+  protected: boolean;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  style: Record<string, unknown>;
+  allowedPaths: string[];
+}
+
+export interface EditInput {
+  instruction: string;
+  doc: CreativeDoc;
+  layers: LayerSummary[];
+  format: FormatSpec;
+  variant?: CopyVariant;
+  rules: RulesConfig;
+  learnings: string[];
+}
+
+export const AiOpSchema = z.object({
+  op: z.enum(['set', 'remove']),
+  layerId: z.string(),
+  path: z.string().optional(),
+  value: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
+});
+
+export const EditResultSchema = z.object({
+  summary: z.string().min(1).max(400),
+  ops: z.array(AiOpSchema).max(30),
+  refusal: z
+    .object({
+      category: z.enum(['dado_comercial', 'processo', 'fora_de_escopo', 'nao_entendi']),
+      message: z.string(),
+    })
+    .nullable(),
+});
+export type EditResult = z.infer<typeof EditResultSchema>;
+
+export interface CritiqueInput {
+  png: Buffer;
+  doc: CreativeDoc;
+  format: FormatSpec;
+  learnings: string[];
+  textSummary: string;
+}
+
+export const CritiqueSchema = z.object({
+  score: z.number().min(0).max(100),
+  summary: z.string().max(500),
+  strengths: z.array(z.string()).max(6),
+  issues: z.array(z.object({ severity: z.enum(['baixa', 'media', 'alta']), text: z.string() })).max(8),
+  suggestions: z.array(z.object({ text: z.string(), instruction: z.string() })).max(5),
+});
+export type Critique = z.infer<typeof CritiqueSchema>;
+
+export interface AIProvider {
+  name: string;
+  generateConcept(input: ConceptInput): Promise<Concept>;
+  interpretEdit(input: EditInput): Promise<EditResult>;
+  critique(input: CritiqueInput): Promise<Critique>;
+}
