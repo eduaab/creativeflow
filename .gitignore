@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+data/*.db
+!data/ofertas-exemplo.csv
+data/pglite
+data/exports
+*.log
