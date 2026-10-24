@@ -84,6 +84,25 @@ sequenceDiagram
 
 Três camadas de defesa independentes: **barreira antes da IA**, **filtro depois da IA**, **regras sobre o resultado**. Mesmo que um modelo "obedeça" a um pedido indevido, a alteração não passa.
 
+### Como a IA "aprende" a marca sem treinamento
+
+Cada pedido de conceito leva um pacote de contexto montado na hora (`services/ai/prompts.ts`):
+
+1. **Manual de marca** (tom de voz, exemplos aprovados e proibidos, termos vetados) lido de `brand.ts`.
+2. **Aprendizados ativos**: motivos de reprovação que o admin transformou em regra de estilo.
+3. **Exemplos aprovados**: títulos e subtítulos de até 4 conceitos já aprovados em outras campanhas (few-shot). A IA usa como referência de nível e tom, com instrução para não copiar.
+4. **Briefing, produtos (com alegações autorizadas) e públicos**.
+
+Quanto mais a equipe aprova e reprova, melhor o contexto, sem fine-tuning e com rastreabilidade (a auditoria registra quantos exemplos foram usados).
+
+### Textos por canal
+
+O mesmo conceito gera, por público, textos de push (título e texto), e-mail (assunto e pré-cabeçalho) e WhatsApp.
+A IA escreve só a parte criativa; `composeMessages` acrescenta, por praça, a lista de ofertas com preço do cadastro,
+a vigência, a advertência de MIP e o link. Produto sem oferta válida na praça fica de fora da mensagem (nunca há preço inventado).
+As regras de texto das peças valem aqui também (COM-004, MAR-004, REG-003, MAR-005 e limite de caracteres), e um bloqueio
+crítico impede aprovar o conceito.
+
 ## 5. Aprovação por conceito + exceção
 
 Revisar peça por peça só move o gargalo do designer para o revisor. Então:
@@ -112,6 +131,8 @@ Transversais: `offers` (fonte comercial), `products`, `segments`, `pracas`, `aud
 | Provedor de IA plugável + modo demonstração | acoplar a um fornecedor | Funciona sem chave; troca para Azure OpenAI sem refatorar. |
 | PGlite em dev, Postgres em produção (mesmo SQL) | SQLite / ORM | Zero setup na demo e caminho direto para Azure Database for PostgreSQL. |
 | Regras em código determinístico | IA julgando conformidade | Bloqueio não pode ser probabilístico. IA só aconselha (revisor de marca). |
+| Manual de marca sintético e versionado | copiar a identidade real a partir de sites públicos | Repositório confidencial e uso de marca de terceiros; a arquitetura não depende dos valores: trocar a marca é editar `brand.ts` (e o seed do catálogo). |
+| Deploy em contêiner único (Render/Azure Container Apps) | front e back separados | Um artefato, mesmo comportamento local e online, Chromium junto para exportação. |
 
 ## 8. Onde entram os dados reais
 
@@ -146,7 +167,7 @@ Para não apresentar como funcionalidade:
 
 - Publicação automática em canais (proposital: fora do escopo e do princípio do produto).
 - Integrações corporativas reais (contratos definidos, sem conectores).
-- Geração de imagem de fundo por IA (o ponto de extensão é `decor`/`image`; hoje os fundos são procedurais).
+- Geração de imagem de fundo por IA (o ponto de extensão é `decor`/`image`; hoje os fundos são procedurais, em 3 famílias de layout).
 - Importação de arte em camadas (Figma/PSD) para adaptação.
-- E-mail/push como formato de saída.
+- Disparo de push, e-mail e WhatsApp. Os **textos** desses canais são gerados, validados e exportados (`textos-canais.csv`); o envio fica com a ferramenta de CRM.
 - Parecer jurídico. A plataforma faz triagem e bloqueio configuráveis; regras regulatórias precisam ser validadas por profissionais.

@@ -17,6 +17,9 @@ Protótipo funcional para o desafio **Creative AI — marketing em escala com in
 | Conceito por público gerado por IA (ou modo demonstração) | Campanha › Conceito | `services/ai` + saída validada com Zod |
 | **Escala**: 1 conceito → N peças (praças × públicos × formatos × produtos + encarte) | Campanha › Peças | `buildCreativeDoc` (templates determinísticos) |
 | 5 formatos: Feed 1:1, Feed 4:5, Stories 9:16, Banner, **Encarte multi-oferta** | Peças | `packages/shared/src/templates.ts` |
+| 3 famílias de layout (clássico, destaque, faixa) × 3 fundos, escolhidas pela IA ou no briefing | Nova campanha / Conceito | templates testados: todas as combinações saem sem alerta |
+| **Textos por canal** (push, e-mail, WhatsApp) no mesmo conceito, com as mesmas regras; preço, vigência e advertência entram pelo cadastro de cada praça | Conceito › Textos por canal | `packages/shared/src/messages.ts` |
+| A IA usa conceitos já **aprovados** em campanhas anteriores como referência de estilo | Auditoria do conceito | `listApprovedConceptExamples` → prompt |
 | Preço, vigência, nome/imagem do produto e advertência **travados** (vêm do cadastro) | Estúdio › Editar | `binding` + `filterOps` |
 | Edição manual no canvas (arrastar, redimensionar, estilo, desfazer) | Estúdio | patch → nova versão |
 | Pedido em linguagem natural → **patch estruturado**, prévia antes/depois, confirmação | Estúdio › Copiloto | barreira de regras **antes** da IA + filtro **depois** |
@@ -25,7 +28,7 @@ Protótipo funcional para o desafio **Creative AI — marketing em escala com in
 | **Aprovação por conceito + exceção** (o revisor não aprova 60 arquivos) | Aprovações | `deriveStatus` |
 | Nova versão nunca herda aprovação; erro crítico sempre bloqueia | — | `governance.ts` + testes |
 | Oferta que vence durante a revisão derruba a liberação | Admin › Demonstração | revalidação na exportação |
-| Exportação ZIP com `manifest.json` e `relatorio.csv` (versão, aprovador, oferta) | Exportar aprovadas | gate no servidor |
+| Exportação ZIP com `manifest.json`, `relatorio.csv` e `textos-canais.csv` (versão, aprovador, oferta, textos finais por praça) | Exportar aprovadas | gate no servidor |
 | Revisor de marca com IA multimodal (consultivo, nunca bloqueia) | Estúdio › Revisão | renderiza PNG e envia à IA |
 | Aprendizados da marca a partir de reprovações (sem fine-tuning) | Marca e regras › Aprendizados | entram no contexto da IA |
 | Importação de planilha de ofertas CSV/XLSX + revalidação automática | Catálogo e ofertas | `import.service.ts` |
@@ -66,16 +69,24 @@ docker compose up --build   # http://localhost:3001
 
 ### Ligando uma IA real
 
-No `.env`, escolha um provedor (a troca não muda nenhuma outra parte do sistema):
+No `.env`, escolha um provedor (a troca não muda nenhuma outra parte do sistema). Exemplo com Gemini, pelo endpoint compatível com OpenAI:
 
 ```bash
-AI_PROVIDER=azure-openai   # ou openai | anthropic
-AZURE_OPENAI_ENDPOINT=https://<recurso>.openai.azure.com
-AZURE_OPENAI_API_KEY=...
-AZURE_OPENAI_DEPLOYMENT=<deployment com saída JSON e visão>
+AI_PROVIDER=openai
+OPENAI_API_KEY=<chave do Google AI Studio>   # nunca versionar
+OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+OPENAI_MODEL=gemini-3.1-flash-lite
+OPENAI_FALLBACK_MODELS=gemini-3.5-flash-lite,gemini-flash-lite-latest
+AI_TIMEOUT_MS=120000
 ```
 
-Se o provedor falhar, a resposta cai no modo demonstração e isso fica registrado (e visível na interface como "contingência").
+Também funciona com `azure-openai` (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`) e `anthropic`.
+Em sobrecarga (429/503) ou demora, a API tenta de novo e troca para os modelos reserva. Se tudo falhar, cai no modo
+demonstração, e a interface mostra **o motivo** ("IA real falhou: …"), também gravado na auditoria.
+
+### Publicar online
+
+`render.yaml` sobe o protótipo no Render (Docker + Postgres) em poucos cliques. Passo a passo e limites do plano gratuito em [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ---
 
@@ -85,8 +96,8 @@ Se o provedor falhar, a resposta cai no modo demonstração e isso fica registra
 pnpm test
 ```
 
-- `packages/shared/test/core.test.ts` (44): todos os 30 templates saem sem crítico/alerta; preço em texto livre bloqueia; praça sem oferta bloqueia sem inventar preço; oferta vencida/de outra praça bloqueia; patch não altera preço/advertência/cor fora da paleta; MIP sem advertência bloqueia; Rx bloqueia; aprovação por herança e exceção.
-- `apps/api/test/flow.test.ts` (10): jornada ponta a ponta pela API, incluindo PNG real, gate de exportação, data simulada e importação de planilha.
+- `packages/shared/test/core.test.ts` (62): todos os 45 templates (formatos × famílias × fundos) saem sem crítico/alerta; textos por canal bloqueiam preço digitado e recebem preço/vigência/advertência do cadastro; preço em texto livre bloqueia; praça sem oferta bloqueia sem inventar preço; oferta vencida/de outra praça bloqueia; patch não altera preço/advertência/cor fora da paleta; MIP sem advertência bloqueia; Rx bloqueia; aprovação por herança e exceção.
+- `apps/api/test/flow.test.ts` (11): jornada ponta a ponta pela API, incluindo PNG real, gate de exportação, textos por canal, exemplos aprovados, data simulada e importação de planilha.
 - `scripts/ui-smoke.mjs`: percorre a interface inteira num navegador headless e salva screenshots (bom para checar antes de gravar o vídeo).
 
 ---
