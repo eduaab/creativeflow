@@ -156,7 +156,7 @@ export function PropertiesPanel({ layer, ctx, push, readOnly }: { layer: Layer |
             <div>
               <label className="label">Fonte</label>
               <select className="input py-1.5" value={s.font ?? 'body'} onChange={(e) => set('style.font', e.target.value)}>
-                <option value="display">Poppins (títulos)</option>
+                <option value="display">Nunito (títulos)</option>
                 <option value="body">Inter (texto)</option>
               </select>
             </div>

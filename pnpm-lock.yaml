@@ -19,6 +19,9 @@ importers:
       '@fontsource/inter':
         specifier: 5.1.0
         version: 5.1.0
+      '@fontsource/nunito':
+        specifier: 5.2.7
+        version: 5.2.7
       '@fontsource/poppins':
         specifier: 5.1.0
         version: 5.1.0
@@ -104,6 +107,9 @@ importers:
       '@fontsource/inter':
         specifier: 5.1.0
         version: 5.1.0
+      '@fontsource/nunito':
+        specifier: 5.2.7
+        version: 5.2.7
       '@fontsource/poppins':
         specifier: 5.1.0
         version: 5.1.0
@@ -564,6 +570,9 @@ packages:
 
   '@fontsource/inter@5.1.0':
     resolution: {integrity: sha512-zKZR3kf1G0noIes1frLfOHP5EXVVm0M7sV/l9f/AaYf+M/DId35FO4LkigWjqWYjTJZGgplhdv4cB+ssvCqr5A==}
+
+  '@fontsource/nunito@5.2.7':
+    resolution: {integrity: sha512-pmtBq0H9ex9nk+RtJYEJOD9pag393iHETnl/PVKleF4i06cd0ttngK5ZCTgYb5eOqR3Xdlrjtev8m7bmgYprew==}
 
   '@fontsource/poppins@5.1.0':
     resolution: {integrity: sha512-tpLXlnNi2fwQjiipvuj4uNFHCdoLA8izRsKdoexZuEzjx0r/g1aKLf4ta6lFgF7L+/+AFdmaXFlUwwvmDzYH+g==}
@@ -2710,6 +2719,8 @@ snapshots:
       lodash.uniq: 4.5.0
 
   '@fontsource/inter@5.1.0': {}
+
+  '@fontsource/nunito@5.2.7': {}
 
   '@fontsource/poppins@5.1.0': {}
 

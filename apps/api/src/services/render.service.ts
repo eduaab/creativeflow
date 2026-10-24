@@ -26,6 +26,7 @@ function fontFaces(): string {
       faces.push(`@font-face{font-family:'${family}';font-weight:${w};font-style:normal;src:url(data:font/woff2;base64,${b64}) format('woff2');}`);
     }
   };
+  add('@fontsource/nunito', 'Nunito', [600, 700, 800]);
   add('@fontsource/poppins', 'Poppins', [400, 500, 600, 700, 800]);
   add('@fontsource/inter', 'Inter', [400, 500, 600, 700]);
   fontCss = faces.join('\n');

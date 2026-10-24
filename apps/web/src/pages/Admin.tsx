@@ -63,7 +63,7 @@ function BrandTab() {
         </div>
         <h3 className="mb-2 mt-5 font-semibold">Tipografia</h3>
         <div className="space-y-2">
-          <div className="font-display text-2xl font-bold text-brand-700">Poppins — títulos, preço e CTA</div>
+          <div className="text-2xl font-extrabold text-brand-700" style={{ fontFamily: "Nunito, sans-serif" }}>Nunito — títulos, preço e CTA (arredondada, como a tipografia observada no estudo)</div>
           <div className="text-base">Inter — textos, nome do produto, vigência e advertências</div>
         </div>
         <p className="mt-4 text-xs text-slate-500">O editor e a IA só aceitam estes tokens. Qualquer cor fora da paleta é recusada no servidor (MAR-002). Trocar a marca = editar packages/shared/src/brand/brand.ts.</p>
