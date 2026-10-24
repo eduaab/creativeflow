@@ -28,6 +28,7 @@ import { createCampaign, editConcept, generateConcept, generatePieces, previewBr
 import { importOffers } from '../services/import.service';
 import { campaignMetrics, overview } from '../services/metrics.service';
 import { renderPng } from '../services/render.service';
+import { getCampaignMessages } from '../services/messages.service';
 import { batchApprove, reviewConcept, reviewCreative, reviewQueue } from '../services/review.service';
 import { RulesConfigPatchSchema, getBaseline, getRulesConfig, getToday, setBaseline, setSimulatedToday, updateRulesConfig } from '../services/settings.service';
 import { offerSource } from '../services/sources';
@@ -130,6 +131,9 @@ export const CampaignController = {
   async generateConcept(req: Request, res: Response) {
     const { feedback } = z.object({ feedback: z.string().max(500).optional() }).parse(req.body ?? {});
     res.json(await generateConcept(param(req, 'id'), uid(req), feedback));
+  },
+  async messages(req: Request, res: Response) {
+    res.json(await getCampaignMessages(param(req, 'id')));
   },
   async editConcept(req: Request, res: Response) {
     res.json(await editConcept(param(req, 'id'), req.body, uid(req)));

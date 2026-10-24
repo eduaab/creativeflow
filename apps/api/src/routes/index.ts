@@ -43,6 +43,7 @@ export function apiRouter(): Router {
   r.get('/campaigns/:id', ah(Campaign.detail));
   r.post('/campaigns/:id/concept/generate', CRIA, ah(Campaign.generateConcept));
   r.put('/campaigns/:id/concept', CRIA, ah(Campaign.editConcept));
+  r.get('/campaigns/:id/messages', ah(Campaign.messages));
   r.post('/campaigns/:id/generate', CRIA, ah(Campaign.generatePieces));
   r.post('/campaigns/:id/revalidate', ah(Campaign.revalidate));
   r.get('/campaigns/:id/audit', ah(Campaign.audit));

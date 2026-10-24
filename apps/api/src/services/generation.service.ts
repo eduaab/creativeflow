@@ -4,6 +4,7 @@ import {
   ConceptSchema,
   FORMATS,
   buildCreativeDoc,
+  withMessages,
   diffDocs,
   type Briefing,
   type Concept,
@@ -11,7 +12,7 @@ import {
   type FormatId,
 } from '@cf/shared';
 import { getProducts, listSegments } from '../models/catalog.model';
-import { getCampaign, getConcept, getCurrentConcept, insertCampaign, insertConcept, touchCampaign, type CampaignRow } from '../models/campaign.model';
+import { getCampaign, getConcept, getCurrentConcept, insertCampaign, listApprovedConceptExamples, insertConcept, touchCampaign, type CampaignRow } from '../models/campaign.model';
 import { getCurrentVersions, insertCreative, insertVersion, listCreatives, nextVersionNumber, type CreativeRow } from '../models/creative.model';
 import { audit, listLearnings } from '../models/governance.model';
 import { badRequest, notFound } from '../utils/errors';
@@ -78,7 +79,7 @@ export async function createCampaign(raw: unknown, userId: string): Promise<Camp
 }
 
 function ensureVariants(concept: Concept, b: Briefing): Concept {
-  const variants = b.segments.map((sid) => concept.variants.find((v) => v.segmentId === sid) ?? { ...concept.variants[0], segmentId: sid });
+  const variants = b.segments.map((sid) => withMessages(concept.variants.find((v) => v.segmentId === sid) ?? { ...concept.variants[0], segmentId: sid }));
   return { ...concept, variants };
 }
 
@@ -86,13 +87,18 @@ export async function generateConcept(campaignId: string, userId: string, feedba
   const campaign = await getCampaign(campaignId);
   if (!campaign) throw notFound('Campanha');
   const b = campaign.briefing;
-  const [productsMap, segments, rules, learnings, previous] = await Promise.all([
+  const [productsMap, segments, rules, learnings, previous, examples] = await Promise.all([
     getProducts(b.skus),
     listSegments(),
     getRulesConfig(),
     listLearnings('ativa'),
     getCurrentConcept(campaignId),
+    listApprovedConceptExamples(campaignId),
   ]);
+  const approvedExamples = examples.map((e) => {
+    const v = e.data.variants.find((x) => x.segmentId === 'geral') ?? e.data.variants[0];
+    return { campanha: e.campaign, objetivo: e.objective, tema: e.data.theme, titulo: v.headline, subtitulo: v.subheadline };
+  });
   const out = await runAI((p) =>
     p.generateConcept({
       briefing: b,
@@ -102,13 +108,14 @@ export async function generateConcept(campaignId: string, userId: string, feedba
       learnings: learnings.map((l) => l.text),
       previous: previous?.data,
       feedback,
+      approvedExamples,
     }),
   );
   const data = ensureVariants(ConceptSchema.parse(out.result), b);
   const concept = await insertConcept({ id: newId('cpt'), campaignId, data, source: out.provider + (out.fallback ? ' (contingência)' : ''), createdBy: userId });
-  await audit({ campaignId, actorId: userId, type: 'concept.generated', payload: { conceptId: concept.id, number: concept.number, provider: out.provider, fallback: out.fallback, error: out.error, ms: out.ms, feedback } });
+  await audit({ campaignId, actorId: userId, type: 'concept.generated', payload: { conceptId: concept.id, number: concept.number, provider: out.provider, fallback: out.fallback, error: out.error, ms: out.ms, feedback, examples: approvedExamples.length } });
   await touchCampaign(campaignId);
-  return { concept, ai: { provider: out.provider, fallback: out.fallback, ms: out.ms } };
+  return { concept, ai: { provider: out.provider, fallback: out.fallback, ms: out.ms, examples: approvedExamples.length } };
 }
 
 /** Edição humana do conceito (textos globais) → novo conceito, propaga para peças derivadas. */

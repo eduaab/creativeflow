@@ -4,6 +4,7 @@ import { getCampaign, getConcept, getCurrentConcept, listCampaigns, setConceptSt
 import { getCurrentVersions, getVersion, listCreatives, listCreativesByStatus, listVersions } from '../models/creative.model';
 import { audit, insertLearning, insertReview } from '../models/governance.model';
 import { badRequest, conflict, notFound } from '../utils/errors';
+import { messageIssues } from './messages.service';
 import { evaluateCreativeById, evaluateVersion } from './validation.service';
 
 async function reevaluateCampaign(campaignId: string) {
@@ -28,6 +29,12 @@ export async function reviewConcept(conceptId: string, raw: unknown, reviewerId:
   if (!concept) throw notFound('Conceito');
   if (concept.status === 'substituido') throw badRequest('Este conceito foi substituído por uma versão mais nova.');
   if (body.decision === 'reprovado' && !body.comment) throw badRequest('Explique o motivo da reprovação.');
+  if (body.decision === 'aprovado') {
+    const campaign = await getCampaign(concept.campaignId);
+    const issues = campaign ? await messageIssues(campaign, concept) : {};
+    const critical = Object.values(issues).flat().filter((r) => r.severity === 'critico');
+    if (critical.length) throw badRequest(`Textos por canal com bloqueio: ${critical.map((r) => r.message).join(' ')} Corrija na aba Conceito antes de aprovar.`);
+  }
   await setConceptStatus(conceptId, body.decision, reviewerId);
   const reviewId = await insertReview({ creativeId: null, versionId: null, conceptId, reviewerId, decision: body.decision, comment: body.comment ?? null });
   let learningId: string | undefined;

@@ -1,4 +1,4 @@
-import { wordsShorten } from '@cf/shared';
+import { LAYOUT_FAMILIES, MESSAGE_LIMITS, wordsShorten, type LayoutFamily } from '@cf/shared';
 import { z } from 'zod';
 
 /**
@@ -12,7 +12,7 @@ const cut = (n: number) => z.string().transform((s) => s.trim().slice(0, n));
 export const LenientConceptSchema = z.object({
   theme: clip(80),
   rationale: cut(600),
-  layoutFamily: z.string().transform((v) => (v === 'destaque' ? 'destaque' : 'classico') as 'destaque' | 'classico'),
+  layoutFamily: z.string().transform((v) => ((LAYOUT_FAMILIES as readonly string[]).includes(v) ? v : 'classico') as LayoutFamily),
   backgroundStyle: z.string().transform((v) => (['solido', 'circulos', 'blocos'].includes(v) ? v : 'circulos') as 'solido' | 'circulos' | 'blocos'),
   encarteHeadline: clip(60),
   variants: z
@@ -28,6 +28,16 @@ export const LenientConceptSchema = z.object({
           .nullable()
           .optional()
           .transform((b) => (b && b.trim() ? wordsShorten(b.trim(), 24) : null)),
+        messages: z
+          .object({
+            pushTitle: clip(MESSAGE_LIMITS.pushTitle),
+            pushBody: clip(MESSAGE_LIMITS.pushBody),
+            emailSubject: clip(MESSAGE_LIMITS.emailSubject),
+            emailPreheader: clip(MESSAGE_LIMITS.emailPreheader),
+            whatsapp: clip(MESSAGE_LIMITS.whatsapp),
+          })
+          .optional()
+          .catch(undefined),
       }),
     )
     .min(1),

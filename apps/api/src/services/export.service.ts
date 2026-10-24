@@ -4,7 +4,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { env } from '../config/env';
-import { getCampaign, markFirstExport } from '../models/campaign.model';
+import { getCampaign, getCurrentConcept, markFirstExport } from '../models/campaign.model';
+import { composeCampaignMessages } from './messages.service';
 import { getCurrentVersions, listCreatives } from '../models/creative.model';
 import { audit, insertExport, listReviewsForCreative } from '../models/governance.model';
 import { getUser } from '../models/user.model';
@@ -95,6 +96,24 @@ export async function exportCampaign(campaignId: string, raw: unknown, userId: s
   };
   zip.file('manifest.json', JSON.stringify(manifest, null, 2));
   zip.file('relatorio.csv', '﻿' + csv.join('\n'));
+  // Textos por canal: só praças com ao menos uma peça liberada; conceito precisa estar aprovado.
+  const concept = await getCurrentConcept(campaignId);
+  let channelTexts = 0;
+  if (concept?.status === 'aprovado') {
+    const releasedPracas = new Set(items.map((i) => String(i.praca)));
+    const rows = (await composeCampaignMessages(campaign, concept)).filter((r) => releasedPracas.has(r.praca));
+    const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const lines = ['praca;publico;canal;texto;ofertas_fora'];
+    for (const r of rows) {
+      const c = r.composed;
+      const fora = c.missing.join(' | ');
+      for (const [canal, texto] of [['push_titulo', c.pushTitle], ['push_texto', c.pushBody], ['email_assunto', c.emailSubject], ['email_preheader', c.emailPreheader], ['whatsapp', c.whatsapp]] as const)
+        lines.push([r.praca, r.segmentId, canal, q(texto), q(fora)].join(';'));
+      zip.file(`${r.praca}/textos/${r.segmentId}_whatsapp.txt`, c.whatsapp);
+      channelTexts++;
+    }
+    if (rows.length) zip.file('textos-canais.csv', '﻿' + lines.join('\n'));
+  }
   const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   const dir = join(env.dataDir, 'exports', campaignId);
   mkdirSync(dir, { recursive: true });
@@ -103,6 +122,6 @@ export async function exportCampaign(campaignId: string, raw: unknown, userId: s
   writeFileSync(path, buf);
   await insertExport({ id: exportId, campaignId, fileName, path, count: items.length, manifest, createdBy: userId });
   await markFirstExport(campaignId);
-  await audit({ campaignId, actorId: userId, type: 'export.done', payload: { exportId, count: items.length, blocked: blocked.length, fileName } });
-  return { exportId, fileName, count: items.length, blocked };
+  await audit({ campaignId, actorId: userId, type: 'export.done', payload: { exportId, count: items.length, blocked: blocked.length, fileName, channelTexts } });
+  return { exportId, fileName, count: items.length, blocked, channelTexts };
 }

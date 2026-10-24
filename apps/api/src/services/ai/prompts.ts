@@ -1,4 +1,4 @@
-import { BRAND_VOICE, CATEGORY_LABELS, COLOR_TOKEN_NAMES, LAYOUT_FAMILIES, BACKGROUND_STYLES } from '@cf/shared';
+import { BRAND_VOICE, CATEGORY_LABELS, COLOR_TOKEN_NAMES, LAYOUT_FAMILIES, BACKGROUND_STYLES, MESSAGE_LIMITS } from '@cf/shared';
 import type { ConceptInput, CritiqueInput, EditInput } from './types';
 
 /**
@@ -30,6 +30,12 @@ REGRAS INEGOCIÁVEIS:
 4. Medicamentos: linguagem informativa e sóbria; nada direcionado a crianças.
 5. Títulos curtos (até 48 caracteres) e "shortHeadline" com até 36 caracteres. CTA com até 3 palavras.
 6. Gere UMA variante para CADA público informado, mantendo o mesmo conceito-base (coerência entre peças).
+7. Em cada variante, preencha "messages" com os textos dos outros canais, no mesmo conceito: pushTitle (até ${MESSAGE_LIMITS.pushTitle} caracteres), pushBody (até ${MESSAGE_LIMITS.pushBody}), emailSubject (até ${MESSAGE_LIMITS.emailSubject}), emailPreheader (até ${MESSAGE_LIMITS.emailPreheader}) e whatsapp (até ${MESSAGE_LIMITS.whatsapp}, 1 a 3 frases, no máximo 1 exclamação). Também SEM preço: o sistema acrescenta a lista de ofertas, a vigência e o link ao final da mensagem de WhatsApp.
+
+FAMÍLIAS DE LAYOUT (escolha a que melhor serve ao objetivo):
+- classico: texto à esquerda e produto à direita; bom para 2 ou mais produtos e mensagens explicativas.
+- destaque: produto grande e centralizado; bom para lançamento ou produto único.
+- faixa: faixa de cor da marca no topo com o título em branco; bom para campanhas sazonais e temas fortes.
 
 Responda apenas no formato JSON pedido. layoutFamily ∈ {${LAYOUT_FAMILIES.join(', ')}}; backgroundStyle ∈ {${BACKGROUND_STYLES.join(', ')}}. "badge" é um selo curto opcional (até 18 caracteres) ou null.`;
 }
@@ -55,6 +61,9 @@ export function conceptUserPrompt(i: ConceptInput): string {
       },
       produtos: products,
       publicos: segments,
+      exemplosAprovadosPelaEquipe: i.approvedExamples?.length
+        ? { instrucao: 'Referência de estilo e nível de qualidade já aprovados. NÃO copie os textos; escreva algo novo para esta campanha.', itens: i.approvedExamples }
+        : null,
       conceitoAnterior: i.previous ?? null,
       feedbackDoRevisor: i.feedback ?? null,
     },

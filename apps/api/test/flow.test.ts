@@ -77,6 +77,7 @@ describe('jornada completa', () => {
     const k = await request(app).post(`/api/campaigns/${campaignId}/concept/generate`).set(as('ana')).send({});
     expect(k.status).toBe(200);
     expect(k.body.concept.data.variants).toHaveLength(2);
+    expect(k.body.concept.data.variants[0].messages.whatsapp.length).toBeGreaterThan(10);
     const g = await request(app).post(`/api/campaigns/${campaignId}/generate`).set(as('ana')).send({});
     expect(g.status).toBe(200);
     expect(g.body.total).toBe(2 * 2 * (3 * 3 + 1));
@@ -138,6 +139,7 @@ describe('jornada completa', () => {
     const e = await request(app).post(`/api/campaigns/${campaignId}/export`).set(as('ana')).send({ creativeIds: ids });
     expect(e.status).toBe(200);
     expect(e.body.count).toBeGreaterThan(0);
+    expect(e.body.channelTexts).toBe(2); // PE × 2 públicos
     const m = await request(app).get(`/api/campaigns/${campaignId}/metrics`).set(as('ana'));
     expect(m.body.pieces.total).toBe(40);
     expect(m.body.governance.aiEditsRefused).toBe(2);
@@ -160,5 +162,27 @@ describe('jornada completa', () => {
     expect(r.body.valid).toBe(1);
     expect(r.body.errors[0].line).toBe(3);
     expect(r.body.reevaluated).toBeGreaterThan(0);
+  }, 60_000);
+
+  it('textos por canal: preço vem do cadastro e texto com preço bloqueia a aprovação', async () => {
+    const c = await request(app).post('/api/campaigns').set(as('ana')).send({ ...briefing, name: 'Canais', pracas: ['PE', 'CE'], skus: ['SKU-1001', 'SKU-1003'], segments: ['geral'], formats: ['feed'] });
+    const id = c.body.id;
+    const k = await request(app).post(`/api/campaigns/${id}/concept/generate`).set(as('ana')).send({});
+    expect(k.body.ai.examples).toBeGreaterThanOrEqual(1); // conceito aprovado da campanha anterior vira referência
+    const m = await request(app).get(`/api/campaigns/${id}/messages`).set(as('ana'));
+    expect(m.status).toBe(200);
+    const pe = m.body.rows.find((r: { praca: string }) => r.praca === 'PE');
+    const ce = m.body.rows.find((r: { praca: string }) => r.praca === 'CE');
+    expect(pe.composed.whatsapp).toMatch(/R\$ \d/);
+    expect(pe.composed.offerLines).toHaveLength(2);
+    expect(ce.composed.missing.length).toBe(1); // SKU-1003 sem oferta no CE: fica de fora, sem preço inventado
+    const d = await request(app).get(`/api/campaigns/${id}`).set(as('ana'));
+    const data = d.body.concept.data;
+    data.variants[0].messages.whatsapp = 'Aproveite: tudo por apenas R$ 9,90 hoje.';
+    const ed = await request(app).put(`/api/campaigns/${id}/concept`).set(as('ana')).send(data);
+    expect(ed.status).toBe(200);
+    const r = await request(app).post(`/api/concepts/${ed.body.id}/review`).set(as('rui')).send({ decision: 'aprovado' });
+    expect(r.status).toBe(400);
+    expect(r.body.error ?? r.body.message).toMatch(/Textos por canal/);
   }, 60_000);
 });

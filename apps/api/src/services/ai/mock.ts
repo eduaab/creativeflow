@@ -4,7 +4,9 @@ import {
   contrastRatio,
   fitFontSize,
   hex,
+  MESSAGE_LIMITS,
   wordsShorten,
+  type ChannelMessages,
   type Concept,
   type CopyVariant,
   type CreativeDoc,
@@ -99,6 +101,23 @@ function pickTheme(text: string): ThemeBank {
 }
 
 function variantFor(segmentId: string, segmentBadge: string | null, base: { headline: string; short: string; sub: string }, cta: string, hasDrug: boolean): CopyVariant {
+  const v = baseVariantFor(segmentId, segmentBadge, base, cta, hasDrug);
+  return { ...v, messages: mockMessages(v) };
+}
+
+/** Textos por canal no modo demonstração: mesmo conceito, adaptado ao tamanho de cada canal. */
+function mockMessages(v: CopyVariant): ChannelMessages {
+  const club = v.segmentId === 'fidelidade';
+  return {
+    pushTitle: wordsShorten(v.shortHeadline, MESSAGE_LIMITS.pushTitle),
+    pushBody: wordsShorten(`${wordsShorten(v.subheadline, 80)} Veja no app.`, MESSAGE_LIMITS.pushBody),
+    emailSubject: wordsShorten(club ? `${v.shortHeadline}: ofertas do Clube` : v.headline, MESSAGE_LIMITS.emailSubject),
+    emailPreheader: wordsShorten(v.subheadline, MESSAGE_LIMITS.emailPreheader),
+    whatsapp: wordsShorten(`Olá! ${v.headline}. ${v.subheadline} Separamos estas ofertas para você:`, MESSAGE_LIMITS.whatsapp),
+  };
+}
+
+function baseVariantFor(segmentId: string, segmentBadge: string | null, base: { headline: string; short: string; sub: string }, cta: string, hasDrug: boolean): CopyVariant {
   const sober = hasDrug ? 'Encontre o que precisa para o seu dia a dia, com orientação farmacêutica.' : base.sub;
   switch (segmentId) {
     case 'fidelidade':
@@ -121,13 +140,13 @@ function generateConcept(i: ConceptInput): Concept {
   const sub = theme.subs[(idx + (i.feedback ? 1 : 0)) % theme.subs.length];
   const hasDrug = i.products.some((p) => p.category === 'mip' || p.category === 'rx');
   const cta = (i.briefing.ctaLabel || 'Compre no app').slice(0, 24);
-  const family = i.briefing.layoutFamily !== 'auto' ? i.briefing.layoutFamily : i.products.length === 1 ? 'destaque' : (['classico', 'destaque'] as const)[hash(key) % 2];
+  const family = i.briefing.layoutFamily !== 'auto' ? i.briefing.layoutFamily : i.products.length === 1 ? (['destaque', 'faixa'] as const)[hash(key) % 2] : (['classico', 'faixa'] as const)[hash(key) % 2];
   const bgs = ['circulos', 'blocos', 'solido'] as const;
   const backgroundStyle = bgs[(hash(key) + (i.previous ? 1 : 0)) % 3];
   const segs = i.briefing.segments.map((id) => i.segments.find((s) => s.id === id)).filter(Boolean);
   return {
     theme: theme.theme,
-    rationale: `Conceito "${theme.theme}" derivado do objetivo "${i.briefing.objective}". Um mesmo título-base adaptado para ${segs.length} público(s), sem citar preço ou condição (inseridos pelo cadastro). Layout "${family}" para ${i.products.length === 1 ? 'dar destaque ao produto único' : 'equilibrar texto e produto'}.${i.feedback ? ` Ajustado ao feedback: "${i.feedback}".` : ''}`,
+    rationale: `Conceito "${theme.theme}" derivado do objetivo "${i.briefing.objective}". Um mesmo título-base adaptado para ${segs.length} público(s), sem citar preço ou condição (inseridos pelo cadastro). Layout "${family}" para ${family === 'faixa' ? 'dar força ao tema com a faixa de cor da marca' : i.products.length === 1 ? 'dar destaque ao produto único' : 'equilibrar texto e produto'}.${i.feedback ? ` Ajustado ao feedback: "${i.feedback}".` : ''}`,
     layoutFamily: family,
     backgroundStyle,
     encarteHeadline: i.briefing.name.length <= 40 ? i.briefing.name : short,

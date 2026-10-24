@@ -9,6 +9,16 @@ export interface ConceptInput {
   learnings: string[];
   previous?: Concept;
   feedback?: string;
+  /** Títulos aprovados pela equipe em campanhas anteriores (few-shot de estilo). */
+  approvedExamples?: ApprovedExample[];
+}
+
+export interface ApprovedExample {
+  campanha: string;
+  objetivo: string;
+  tema: string;
+  titulo: string;
+  subtitulo: string;
 }
 
 export interface LayerSummary {

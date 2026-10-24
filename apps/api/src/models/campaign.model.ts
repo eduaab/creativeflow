@@ -90,6 +90,18 @@ export async function listConcepts(campaignId: string): Promise<ConceptRow[]> {
   const { rows } = await db().query('select * from concepts where campaign_id = $1 order by number desc', [campaignId]);
   return rows.map(mapConcept);
 }
+/** Conceitos já aprovados em OUTRAS campanhas (mais recentes primeiro): referência de estilo para a IA. */
+export async function listApprovedConceptExamples(excludeCampaignId: string, limit = 4): Promise<{ campaign: string; objective: string; data: Concept }[]> {
+  const { rows } = await db().query(
+    `select c.data, k.briefing from concepts c join campaigns k on k.id = c.campaign_id
+     where c.approved_at is not null and c.campaign_id <> $1 order by c.approved_at desc limit $2`,
+    [excludeCampaignId, limit],
+  );
+  return rows.map((r: Record<string, unknown>) => {
+    const b = r.briefing as { name: string; objective: string };
+    return { campaign: b.name, objective: b.objective, data: r.data as Concept };
+  });
+}
 export async function setConceptStatus(id: string, status: ConceptStatus, by?: string) {
   if (status === 'aprovado') await db().query("update concepts set status = 'aprovado', approved_by = $2, approved_at = now() where id = $1", [id, by]);
   else await db().query('update concepts set status = $2 where id = $1', [id, status]);

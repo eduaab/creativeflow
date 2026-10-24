@@ -7,14 +7,19 @@ import { catalogSource, offerSource } from './sources';
 
 /** Monta o contexto com dados comerciais SEMPRE frescos da fonte (nunca do documento). */
 export async function buildContext(doc: CreativeDoc, campaign: CampaignRow): Promise<RenderContext> {
+  return buildContextFor(doc.meta.praca, doc.meta.skus, campaign);
+}
+
+/** Contexto comercial de uma praça (produtos, ofertas vigentes, advertência), sem precisar de peça. */
+export async function buildContextFor(pracaCode: string, skus: string[], campaign: CampaignRow): Promise<RenderContext> {
   const [products, offers, praca, today, rules] = await Promise.all([
-    catalogSource.getProducts(doc.meta.skus),
-    offerSource.getOffers(doc.meta.praca, doc.meta.skus),
-    getPraca(doc.meta.praca),
+    catalogSource.getProducts(skus),
+    offerSource.getOffers(pracaCode, skus),
+    getPraca(pracaCode),
     getToday(),
     getRulesConfig(),
   ]);
-  if (!praca) throw notFound(`Praça ${doc.meta.praca}`);
+  if (!praca) throw notFound(`Praça ${pracaCode}`);
   return {
     products,
     offers,
