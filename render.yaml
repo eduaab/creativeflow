@@ -1,0 +1,42 @@
+# Blueprint do Render: sobe o protótipo online com um clique (New → Blueprint → este repositório).
+# Cria 1 serviço web (Docker: API + front-end + Chromium) e 1 Postgres gerenciado.
+# Segredos marcados com "sync: false" são pedidos na tela do Render e NUNCA ficam no Git.
+services:
+  - type: web
+    name: creativeflow
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: creativeflow-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_PROVIDER
+        value: mock # troque para "openai" depois de preencher a chave
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: OPENAI_FALLBACK_MODELS
+        value: gemini-3.5-flash-lite,gemini-flash-lite-latest
+      - key: OPENAI_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: AI_TIMEOUT_MS
+        value: "120000"
+      - key: APP_PUBLIC_URL
+        sync: false
+      - key: TEAMS_WEBHOOK_URL
+        sync: false
+
+databases:
+  - name: creativeflow-db
+    plan: free
+    databaseName: creativeflow
+    user: creativeflow
