@@ -1,9 +1,9 @@
-import { ConceptSchema } from '@cf/shared';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { env } from '../../config/env';
 import { conceptSystemPrompt, conceptUserPrompt, critiqueSystemPrompt, editSystemPrompt, editUserPrompt } from './prompts';
-import { CritiqueSchema, EditResultSchema, type AIProvider } from './types';
+import { LenientConceptSchema, LenientCritiqueSchema, LenientEditSchema } from './lenient';
+import type { AIProvider } from './types';
 
 /**
  * Provedores reais via HTTP (sem SDK, para manter a troca simples):
@@ -19,7 +19,7 @@ interface JsonCall<T> {
   name: string;
   system: string;
   user: Part[];
-  schema: z.ZodType<T>;
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
   maxTokens?: number;
 }
 
@@ -29,6 +29,26 @@ function jsonSchemaOf(schema: z.ZodTypeAny): Record<string, unknown> {
   return js;
 }
 
+/** Extrai o JSON da resposta, tolerando cercas ```json e texto antes/depois. */
+export function extractJson(text: string): unknown {
+  const t = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  try {
+    return JSON.parse(t);
+  } catch {
+    const a = t.indexOf('{');
+    const b = t.lastIndexOf('}');
+    if (a >= 0 && b > a) return JSON.parse(t.slice(a, b + 1));
+    throw new SyntaxError(`Resposta da IA não contém JSON: ${t.slice(0, 120)}`);
+  }
+}
+
+type FormatMode = 'json_schema' | 'json_object' | 'texto';
+/** Lembra qual modo de saída o provedor aceitou, para não repetir tentativas que falham. */
+let preferredMode: FormatMode | null = null;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TRANSIENT = [429, 500, 502, 503, 504];
+
 async function callOpenAICompatible<T>(c: JsonCall<T>, azure: boolean): Promise<T> {
   const url = azure
     ? `${env.azure.endpoint.replace(/\/$/, '')}/openai/deployments/${env.azure.deployment}/chat/completions?api-version=${env.azure.apiVersion}`
@@ -37,21 +57,79 @@ async function callOpenAICompatible<T>(c: JsonCall<T>, azure: boolean): Promise<
   if (azure) headers['api-key'] = env.azure.key;
   else headers.authorization = `Bearer ${env.openai.key}`;
   const content = c.user.map((p) => (p.type === 'text' ? { type: 'text', text: p.text } : { type: 'image_url', image_url: { url: `data:${p.mime};base64,${p.base64}` } }));
-  const body: Record<string, unknown> = {
-    messages: [
-      { role: 'system', content: c.system },
-      { role: 'user', content },
-    ],
-    temperature: 0.4,
-    max_tokens: c.maxTokens ?? 2000,
-    response_format: { type: 'json_schema', json_schema: { name: c.name, schema: jsonSchemaOf(c.schema as z.ZodTypeAny), strict: false } },
-  };
-  if (!azure) body.model = env.openai.model;
-  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(45_000) });
-  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const data = (await res.json()) as { choices: { message: { content: string } }[] };
-  const text = data.choices?.[0]?.message?.content ?? '';
-  return c.schema.parse(JSON.parse(text));
+  const schema = jsonSchemaOf(c.schema as z.ZodTypeAny);
+  const models = azure ? [''] : [env.openai.model, ...env.openai.fallbackModels];
+
+  // Provedores "compatíveis com OpenAI" (Gemini, Groq, modelos locais…) nem sempre aceitam
+  // json_schema completo. Tenta do mais rígido ao mais simples; o Zod valida no fim de qualquer jeito.
+  const allModes: FormatMode[] = ['json_schema', 'json_object', 'texto'];
+  const modes: FormatMode[] = preferredMode ? [preferredMode, ...allModes.filter((m) => m !== preferredMode)] : allModes;
+  const errors: string[] = [];
+
+  for (const model of models) {
+    let overloaded = false;
+    for (const mode of modes) {
+      const system =
+        mode === 'json_schema'
+          ? c.system
+          : `${c.system}\n\nFORMATO OBRIGATÓRIO: responda SOMENTE com um objeto JSON válido (sem markdown, sem comentários) que siga exatamente este JSON Schema:\n${JSON.stringify(schema)}`;
+      const body: Record<string, unknown> = {
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content },
+        ],
+        temperature: 0.4,
+        max_tokens: Math.max(c.maxTokens ?? 2000, 8192),
+      };
+      if (mode === 'json_schema') body.response_format = { type: 'json_schema', json_schema: { name: c.name, schema, strict: false } };
+      if (mode === 'json_object') body.response_format = { type: 'json_object' };
+      if (!azure) body.model = model;
+
+      // Sobrecarga momentânea (503/429): espera e tenta de novo antes de desistir do modelo.
+      let res: Response | null = null;
+      let timedOut = false;
+      for (const wait of [0, 1500, 4000]) {
+        if (wait) await sleep(wait);
+        try {
+          res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(env.aiTimeoutMs) });
+        } catch (e) {
+          // Tempo esgotado ou rede instável: não adianta repetir o mesmo modelo várias vezes.
+          errors.push(`${model || 'deployment'}: sem resposta em ${Math.round(env.aiTimeoutMs / 1000)}s (${String(e).slice(0, 80)})`);
+          timedOut = true;
+          break;
+        }
+        if (!TRANSIENT.includes(res.status)) break;
+      }
+      if (timedOut) {
+        overloaded = true; // tenta o próximo modelo reserva
+        break;
+      }
+      if (!res!.ok) {
+        const msg = `HTTP ${res!.status} (${model || 'deployment'}, ${mode}): ${(await res!.text()).slice(0, 300)}`;
+        errors.push(msg);
+        if (TRANSIENT.includes(res!.status)) {
+          overloaded = true;
+          break; // trocar o formato não resolve sobrecarga: vai para o próximo modelo
+        }
+        if ([401, 403, 404].includes(res!.status)) {
+          if (res!.status === 404 && models.length > 1) break; // modelo inexistente: tenta o reserva
+          throw new Error(msg);
+        }
+        continue; // 400: provável formato não suportado, tenta o próximo modo
+      }
+      const data = (await res!.json()) as { choices?: { message?: { content?: string } }[] };
+      const text = data.choices?.[0]?.message?.content ?? '';
+      try {
+        const parsed = c.schema.parse(extractJson(text));
+        preferredMode = mode;
+        return parsed;
+      } catch (e) {
+        errors.push(`${mode}: resposta fora do formato (${String(e).slice(0, 300)})`);
+      }
+    }
+    if (!overloaded && errors.length && !errors[errors.length - 1].startsWith('HTTP 404')) break;
+  }
+  throw new Error(errors.join(' | '));
 }
 
 async function callAnthropic<T>(c: JsonCall<T>): Promise<T> {
@@ -98,9 +176,9 @@ export function isLlmConfigured(): boolean {
 export const llmProvider: AIProvider = {
   name: env.aiProvider,
   generateConcept: (i) =>
-    callJson({ name: 'conceito_campanha', system: conceptSystemPrompt(i), user: [{ type: 'text', text: conceptUserPrompt(i) }], schema: ConceptSchema }),
+    callJson({ name: 'conceito_campanha', system: conceptSystemPrompt(i), user: [{ type: 'text', text: conceptUserPrompt(i) }], schema: LenientConceptSchema }),
   interpretEdit: (i) =>
-    callJson({ name: 'edicao_peca', system: editSystemPrompt(i), user: [{ type: 'text', text: editUserPrompt(i) }], schema: EditResultSchema, maxTokens: 1500 }),
+    callJson({ name: 'edicao_peca', system: editSystemPrompt(i), user: [{ type: 'text', text: editUserPrompt(i) }], schema: LenientEditSchema, maxTokens: 1500 }),
   critique: (i) =>
     callJson({
       name: 'critica_peca',
@@ -109,7 +187,7 @@ export const llmProvider: AIProvider = {
         { type: 'image', base64: i.png.toString('base64'), mime: 'image/png' },
         { type: 'text', text: `Textos da peça: ${i.textSummary}` },
       ],
-      schema: CritiqueSchema,
+      schema: LenientCritiqueSchema,
       maxTokens: 1200,
     }),
 };

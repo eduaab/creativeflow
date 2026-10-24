@@ -17,8 +17,16 @@ export const env = {
   databaseUrl: str('DATABASE_URL'),
   dataDir: str('DATA_DIR', resolve(ROOT_DIR, 'data')),
   jwtSecret: str('JWT_SECRET', 'dev-secret-troque'),
+  /** Tempo máximo de espera por resposta da IA (ms). Modelos que "pensam" podem levar mais de 1 minuto. */
+  aiTimeoutMs: Number(str('AI_TIMEOUT_MS', '120000')),
   aiProvider: str('AI_PROVIDER', 'mock') as 'mock' | 'openai' | 'azure-openai' | 'anthropic',
-  openai: { key: str('OPENAI_API_KEY'), model: str('OPENAI_MODEL', 'gpt-4o-mini'), baseUrl: str('OPENAI_BASE_URL', 'https://api.openai.com/v1') },
+  openai: {
+    key: str('OPENAI_API_KEY'),
+    model: str('OPENAI_MODEL', 'gpt-4o-mini'),
+    /** Modelos reserva, separados por vírgula, usados quando o principal está sobrecarregado (503/429). */
+    fallbackModels: str('OPENAI_FALLBACK_MODELS').split(',').map((m) => m.trim()).filter(Boolean),
+    baseUrl: str('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+  },
   azure: {
     endpoint: str('AZURE_OPENAI_ENDPOINT'),
     key: str('AZURE_OPENAI_API_KEY'),

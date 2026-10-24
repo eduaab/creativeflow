@@ -34,6 +34,7 @@ export async function runAI<T>(fn: (p: AIProvider) => Promise<T>): Promise<AIOut
     return { result: await fn(p), provider: p.name, fallback: false, ms: Date.now() - t0 };
   } catch (err) {
     if (p === mockProvider) throw err;
+    console.warn(`[IA] ${p.name} falhou; usando modo demonstração. Motivo: ${String(err).slice(0, 600)}`);
     const result = await fn(mockProvider);
     return { result, provider: 'mock', fallback: true, error: String(err).slice(0, 400), ms: Date.now() - t0 };
   }
