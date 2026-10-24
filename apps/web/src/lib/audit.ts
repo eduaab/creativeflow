@@ -34,7 +34,7 @@ export function auditDetail(e: AuditEvent): string {
   const p = e.payload;
   switch (e.type) {
     case 'concept.generated':
-      return `#${p.number} · ${p.provider}${p.fallback ? ' (contingência)' : ''} · ${p.ms} ms${p.feedback ? ` · feedback: "${p.feedback}"` : ''}${p.error ? ` · ERRO DA IA: ${p.error}` : ''}`;
+      return `#${p.number} · ${p.provider}${p.fallback ? ' (contingência)' : ''} · ${p.ms} ms${p.examples ? ` · ${p.examples} conceito(s) aprovado(s) como referência` : ''}${p.feedback ? ` · feedback: "${p.feedback}"` : ''}${p.error ? ` · ERRO DA IA: ${p.error}` : ''}`;
     case 'pieces.generated':
       return `${p.total} peças (${p.created} novas, ${p.updated} regeradas, ${p.kept} mantidas) em ${(Number(p.ms) / 1000).toFixed(1)} s`;
     case 'version.created':

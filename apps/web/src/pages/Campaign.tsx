@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api, type CampaignDetail, type CreativeDTO, type Metrics } from '../api/client';
 import { AuditList } from '../components/AuditList';
+import { ChannelTexts } from '../components/ChannelTexts';
 import { PageShell } from '../components/Layout';
 import { Thumb } from '../components/Thumb';
 import { Badge, Button, Empty, ErrorBox, Loading, Modal, PageHeader, Stat, StatusBadge, Tabs, Toggle } from '../components/ui';
@@ -222,10 +223,10 @@ function ConceptTab({ d }: { d: CampaignDetail }) {
       const g = await api.generatePieces(d.campaign.id);
       return { k, g };
     },
-    onSuccess: ({ g }) => {
+    onSuccess: ({ k, g }) => {
       refresh();
       setFeedback('');
-      toast(`Novo conceito gerado. ${g.updated + g.created} peça(s) derivadas atualizadas; ${g.kept} editada(s) preservada(s).`);
+      toast(`Novo conceito gerado${k.ai.examples ? ` (com ${k.ai.examples} conceito(s) aprovado(s) como referência)` : ''}. ${g.updated + g.created} peça(s) derivadas atualizadas; ${g.kept} editada(s) preservada(s).`);
     },
     onError: (e) => toast((e as Error).message, 'error'),
   });
@@ -346,6 +347,7 @@ function ConceptTab({ d }: { d: CampaignDetail }) {
               <div className="flex items-center justify-center rounded-lg bg-slate-100 p-2">
                 {s?.current ? <Thumb doc={s.current.doc} ctx={ctxFor(d.context, s.praca, s.skus)} maxW={180} maxH={220} /> : <span className="text-xs text-slate-400">gere as peças</span>}
               </div>
+              <ChannelTexts variant={v} d={d} editable={editable} onChange={(m) => setDraft({ ...draft, variants: draft.variants.map((x, j) => (j === i ? { ...x, messages: m } : x)) })} />
             </div>
           );
         })}

@@ -136,6 +136,7 @@ export function NewCampaignPage() {
                     <option value="auto">IA escolhe</option>
                     <option value="classico">Clássico (texto + produto)</option>
                     <option value="destaque">Destaque do produto</option>
+                    <option value="faixa">Faixa de cor (título no topo)</option>
                   </select>
                 </div>
               </div>
