@@ -13,6 +13,8 @@ import type {
   RulesConfig,
   RuleDefinition,
   Segment,
+  SemanticCheck,
+  SemanticText,
   UserRole,
   ValidationReport,
   VersionOrigin,
@@ -125,6 +127,8 @@ export interface Review {
   comment: string | null;
   createdAt: string;
 }
+export type SemanticDTO = (SemanticCheck & { texts: SemanticText[]; source?: 'conceito' | 'versao' }) | null;
+
 export interface CritiqueDTO {
   id: string;
   provider: string;
@@ -294,6 +298,9 @@ export const api = {
   discardAi: (proposalId: string) => req<{ ok: true }>('POST', `/ai-edits/${proposalId}/discard`, {}),
   restore: (id: string, versionId: string) => req<{ version: VersionDTO }>('POST', `/creatives/${id}/restore`, { versionId }),
   validate: (id: string) => req<{ status: CreativeStatus; reason: string | null; validation: ValidationReport }>('POST', `/creatives/${id}/validate`, {}),
+  semanticConcept: (campaignId: string) => req<SemanticDTO>('GET', `/campaigns/${campaignId}/semantic`),
+  semanticCreative: (creativeId: string) => req<SemanticDTO>('GET', `/creatives/${creativeId}/semantic`),
+  dismissSemantic: (hash: string, findingId: string, reason: string, campaignId: string) => req<{ statusCounts: Record<string, number> }>('POST', `/semantic/${hash}/dismiss`, { findingId, reason, campaignId }),
   critique: (id: string) => req<CritiqueDTO & { versionId: string }>('POST', `/creatives/${id}/critique`, {}),
   downloadPng: (id: string) => download(`/creatives/${id}/png`, 'peca.png'),
 

@@ -242,7 +242,7 @@ export function PropertiesPanel({ layer, ctx, push, readOnly }: { layer: Layer |
 }
 
 /* ----------------------------- Validação -------------------------- */
-const CAT_LABEL: Record<RuleCategory, string> = { comercial: 'Dados comerciais', marca: 'Marca', formato: 'Formato e legibilidade', regulatorio: 'Conteúdo e regulatório' };
+const CAT_LABEL: Record<RuleCategory, string> = { comercial: 'Dados comerciais', marca: 'Marca', formato: 'Formato e legibilidade', regulatorio: 'Conteúdo e regulatório', semantica: 'Revisão semântica (IA)' };
 
 export function ValidationPanel({ report, onSelectLayer, title }: { report: ValidationReport | null; onSelectLayer: (id: string) => void; title: ReactNode }) {
   if (!report) return <div className="p-4 text-xs text-slate-500">Sem validação.</div>;

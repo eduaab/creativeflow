@@ -21,6 +21,8 @@ const LABELS: Record<string, string> = {
   'export.single': 'Download unitário',
   'notification.sent': 'Notificação enviada',
   'ai.critique': 'Revisor de marca (IA) analisou a peça',
+  'ai.semantic': 'Revisão semântica da IA',
+  'ai.semantic.dismissed': 'Apontamento da IA descartado pelo revisor',
   'offers.imported': 'Planilha de ofertas importada',
   'settings.updated': 'Configurações alteradas',
   'rules.updated': 'Regras alteradas',
@@ -55,6 +57,10 @@ export function auditDetail(e: AuditEvent): string {
       return `${p.count} arquivo(s) · ${p.blocked} retida(s) pelo gate`;
     case 'notification.sent':
       return `${p.title} (${p.delivered === 'teams' ? 'Teams' : 'registro'})`;
+    case 'ai.semantic':
+      return `${p.target} · ${p.findings} apontamento(s) · ${p.provider}${p.fallback ? ' (contingência)' : ''}${p.aiError ? ` · ERRO DA IA: ${p.aiError}` : ''}`;
+    case 'ai.semantic.dismissed':
+      return `"${p.excerpt}" · motivo: ${p.reason}`;
     case 'ai.critique':
       return `nota ${p.score} · ${p.provider}`;
     default:

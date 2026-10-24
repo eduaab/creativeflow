@@ -45,6 +45,7 @@ import { ctxFor } from '../lib/ctx';
 import { ORIGIN_LABEL, fmtDateTime } from '../lib/format';
 import { useToast } from '../lib/toast';
 import { Canvas, type Geometry } from './studio/Canvas';
+import { SemanticReview } from '../components/SemanticReview';
 import { AiBadge, LayersPanel, PropertiesPanel, SUGGESTIONS, ValidationPanel } from './studio/Panels';
 
 type RightTab = 'props' | 'copiloto' | 'regras' | 'revisao';
@@ -85,7 +86,7 @@ export function StudioPage() {
   const working = useMemo(() => (current ? applyOps(current.doc, ops) : null), [current, ops]);
   const displayed = proposal?.previewDoc && showPreview ? proposal.previewDoc : working;
   const segment = catalog.data?.segments.find((s) => s.id === q.data?.creative.segmentId);
-  const localReport = useMemo(() => (working && ctx && ops.length ? validateCreative(working, ctx, { segment }) : null), [working, ctx, ops.length, segment]);
+  const localReport = useMemo(() => (working && ctx && ops.length ? validateCreative(working, ctx, { segment, extra: current?.validation?.results.filter((r) => r.ruleId === 'IA-001') }) : null), [working, ctx, ops.length, segment]);
   const report = proposal?.validation && showPreview ? proposal.validation : (localReport ?? current?.validation ?? null);
   const flagged = new Set((report?.results ?? []).filter((r) => !r.passed && r.severity !== 'info' && r.layerId).map((r) => r.layerId!));
   const readOnly = !can(user, 'criador') || !!proposal;
@@ -342,6 +343,11 @@ export function StudioPage() {
                 onSelectLayer={setSelected}
                 title={proposal && showPreview ? 'Prévia das regras sobre a proposta da IA' : ops.length ? 'Prévia local (confirmada no servidor ao salvar)' : `Última validação no servidor · v${current?.number}`}
               />
+            )}
+            {tab === 'regras' && d && (
+              <div className="px-4 pb-4">
+                <SemanticReview campaignId={d.creative.campaignId} creativeId={d.creative.id} refKey={current?.id} compact />
+              </div>
             )}
             {tab === 'copiloto' && (
               <div className="space-y-4 p-4">

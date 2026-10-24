@@ -7,6 +7,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api, type CampaignDetail, type CreativeDTO, type Metrics } from '../api/client';
 import { AuditList } from '../components/AuditList';
 import { ChannelTexts } from '../components/ChannelTexts';
+import { SemanticReview } from '../components/SemanticReview';
 import { PageShell } from '../components/Layout';
 import { Thumb } from '../components/Thumb';
 import { Badge, Button, Empty, ErrorBox, Loading, Modal, PageHeader, Stat, StatusBadge, Tabs, Toggle } from '../components/ui';
@@ -375,6 +376,7 @@ function ConceptTab({ d }: { d: CampaignDetail }) {
             )}
           </div>
         )}
+        <SemanticReview campaignId={d.campaign.id} refKey={concept.id} />
         <div className={clsx('card space-y-3 p-4', concept.status === 'proposto' && 'border-violet-300 ring-2 ring-violet-100')}>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <ShieldCheck className="h-4 w-4 text-brand-600" /> Aprovação do conceito
