@@ -18,8 +18,8 @@ export async function critiqueCreative(creativeId: string, userId: string) {
     .join(' | ');
   const out = await runAI((p) => p.critique({ png, doc: version.doc, format: FORMATS[version.doc.format], learnings: learnings.map((l) => l.text), textSummary }));
   const id = await insertCritique({ creativeId, versionId: version.id, provider: out.provider, data: out.result });
-  await audit({ campaignId: creative.campaignId, creativeId, versionId: version.id, actorId: userId, type: 'ai.critique', payload: { score: out.result.score, provider: out.provider, fallback: out.fallback, ms: out.ms } });
-  return { id, versionId: version.id, provider: out.provider, fallback: out.fallback, ...out.result };
+  await audit({ campaignId: creative.campaignId, creativeId, versionId: version.id, actorId: userId, type: 'ai.critique', payload: { score: out.result.score, provider: out.provider, fallback: out.fallback, aiError: out.error, ms: out.ms } });
+  return { id, versionId: version.id, provider: out.provider, fallback: out.fallback, error: out.error, ...out.result };
 }
 
 export async function getCritique(versionId: string) {

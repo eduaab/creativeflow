@@ -167,9 +167,9 @@ export async function proposeAiEdit(creativeId: string, raw: unknown, userId: st
   const result = out.result;
   if (result.refusal || !result.ops.length) {
     const refusal = result.refusal ?? { category: 'nao_entendi' as const, message: 'A IA não propôs alterações.' };
-    const data = { summary: result.summary, ops: [], rejected: [], refusal, provider: out.provider, fallback: out.fallback };
+    const data = { summary: result.summary, ops: [], rejected: [], refusal, provider: out.provider, fallback: out.fallback, error: out.error };
     await insertProposal({ id: proposalId, creativeId, baseVersionId: version.id, instruction: body.instruction, scope: body.scope, data, status: 'recusada', authorId: userId });
-    await audit({ ...base, type: 'ai.edit.refused', payload: { instruction: body.instruction, refusal, by: out.provider } });
+    await audit({ ...base, type: 'ai.edit.refused', payload: { instruction: body.instruction, refusal, by: out.provider, aiError: out.error } });
     return { proposalId, status: 'recusada' as const, ...data, previewDoc: null, diff: [], validation: null };
   }
 
@@ -180,9 +180,9 @@ export async function proposeAiEdit(creativeId: string, raw: unknown, userId: st
   const diff = diffDocs(version.doc, previewDoc);
   const ctx = await buildContext(previewDoc, campaign);
   const validation = validateCreative(previewDoc, ctx, { config: rules, segment: await getSegment(creative.segmentId) });
-  const data = { summary: result.summary, ops: allowed, rejected, refusal: null, provider: out.provider, fallback: out.fallback, ms: out.ms };
+  const data = { summary: result.summary, ops: allowed, rejected, refusal: null, provider: out.provider, fallback: out.fallback, error: out.error, ms: out.ms };
   await insertProposal({ id: proposalId, creativeId, baseVersionId: version.id, instruction: body.instruction, scope: body.scope, data, status: 'pendente', authorId: userId });
-  await audit({ ...base, type: 'ai.edit.proposed', payload: { proposalId, instruction: body.instruction, ops: allowed.length, provider: out.provider, fallback: out.fallback, ms: out.ms } });
+  await audit({ ...base, type: 'ai.edit.proposed', payload: { proposalId, instruction: body.instruction, ops: allowed.length, provider: out.provider, fallback: out.fallback, aiError: out.error, ms: out.ms } });
   const blocked = rejected.filter((r) => r.protectedField);
   if (blocked.length) await audit({ ...base, type: 'edit.protected_field_blocked', payload: { source: 'ia', instruction: body.instruction, rejected: blocked } });
   return { proposalId, status: 'pendente' as const, ...data, previewDoc, diff, validation };
