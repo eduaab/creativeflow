@@ -34,13 +34,13 @@ export function auditDetail(e: AuditEvent): string {
   const p = e.payload;
   switch (e.type) {
     case 'concept.generated':
-      return `#${p.number} · ${p.provider}${p.fallback ? ' (contingência)' : ''} · ${p.ms} ms${p.feedback ? ` · feedback: "${p.feedback}"` : ''}`;
+      return `#${p.number} · ${p.provider}${p.fallback ? ' (contingência)' : ''} · ${p.ms} ms${p.feedback ? ` · feedback: "${p.feedback}"` : ''}${p.error ? ` · ERRO DA IA: ${p.error}` : ''}`;
     case 'pieces.generated':
       return `${p.total} peças (${p.created} novas, ${p.updated} regeradas, ${p.kept} mantidas) em ${(Number(p.ms) / 1000).toFixed(1)} s`;
     case 'version.created':
       return `v${p.number} · ${p.origin}${p.instruction ? ` · "${p.instruction}"` : ''} · ${p.changes} alteração(ões) · ${p.critical ? `${p.critical} crítico(s)` : 'sem crítico'}${p.approvalReset ? ' · aprovação anterior não herdada' : ''}`;
     case 'ai.edit.refused':
-      return `"${p.instruction}" → ${(p.refusal as { message?: string })?.message ?? ''} (${p.by})`;
+      return `"${p.instruction}" → ${(p.refusal as { message?: string })?.message ?? ''} (${p.by})${p.aiError ? ` · ERRO DA IA: ${p.aiError}` : ''}`;
     case 'ai.edit.proposed':
     case 'ai.edit.applied':
       return `"${p.instruction}"`;

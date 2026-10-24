@@ -430,6 +430,11 @@ function ProposalCard({ p, before, ctx, onApply, onDiscard, applying }: { p: Pro
         <span className={clsx('text-xs font-semibold', refused ? 'text-red-700' : 'text-violet-700')}>{refused ? 'Pedido recusado' : 'Proposta da IA'}</span>
         <AiBadge provider={p.provider} fallback={p.fallback} />
       </div>
+      {p.fallback && p.error && (
+        <div className="mb-2 rounded-md bg-amber-50 p-2 text-[11px] text-amber-900">
+          <span className="font-semibold">A IA real falhou e o modo demonstração respondeu. Motivo:</span> {p.error}
+        </div>
+      )}
       {refused ? (
         <p className="text-xs text-red-800">{p.refusal?.message}</p>
       ) : (
@@ -560,6 +565,7 @@ function ReviewTab({ d, onSuggest, refresh }: { d: CreativeDetail; onSuggest: (t
         <Button size="sm" variant="ai" className="mt-2 w-full" icon={<Sparkles className="h-3.5 w-3.5" />} loading={crit.isPending} onClick={() => crit.mutate()}>
           {critique ? 'Analisar de novo' : 'Analisar peça'}
         </Button>
+        {critique?.fallback && critique.error && <div className="mt-2 rounded-md bg-amber-50 p-2 text-[11px] text-amber-900">A IA real falhou: {critique.error}</div>}
         {critique && (
           <div className="mt-3 space-y-2 text-xs">
             <div className="flex items-center gap-3">

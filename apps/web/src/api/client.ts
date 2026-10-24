@@ -129,6 +129,7 @@ export interface CritiqueDTO {
   id: string;
   provider: string;
   fallback?: boolean;
+  error?: string;
   score: number;
   summary: string;
   strengths: string[];
@@ -153,6 +154,7 @@ export interface Proposal {
   refusal: { category: string; message: string } | null;
   provider: string;
   fallback: boolean;
+  error?: string;
   ms?: number;
   previewDoc: CreativeDoc | null;
   diff: DiffEntry[];

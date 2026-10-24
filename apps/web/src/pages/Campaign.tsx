@@ -279,7 +279,7 @@ function ConceptTab({ d }: { d: CampaignDetail }) {
               </div>
               <p className="mt-1 max-w-3xl text-sm text-slate-600">{draft.rationale}</p>
               <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                <Badge tone={concept.source.startsWith('mock') ? 'amber' : 'violet'}><Sparkles className="h-3 w-3" /> {concept.source.startsWith('mock') ? 'IA em modo demonstração' : concept.source === 'manual' ? 'editado manualmente' : `IA: ${concept.source}`}</Badge>
+                <Badge tone={concept.source.startsWith('mock') ? 'amber' : 'violet'}><Sparkles className="h-3 w-3" /> {concept.source.includes('contingência') ? 'IA real falhou: modo demonstração (contingência)' : concept.source.startsWith('mock') ? 'IA em modo demonstração' : concept.source === 'manual' ? 'editado manualmente' : `IA: ${concept.source}`}</Badge>
                 <span>criado {fmtDateTime(concept.createdAt)}</span>
                 {concept.approvedAt && <span>· aprovado {fmtDateTime(concept.approvedAt)}</span>}
               </div>
