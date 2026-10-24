@@ -1,24 +1,25 @@
 /**
- * MANUAL DE MARCA SINTÉTICO (versionado)
+ * MANUAL DE MARCA SINTÉTICO, DERIVADO DE ESTUDO PÚBLICO (versionado)
  *
- * Valores provisórios e propositalmente neutros. O critério de construção do manual
- * (fontes públicas observadas, data, decisão tomada) fica em docs/MANUAL-DE-MARCA.md.
- * Para trocar a marca, altere apenas este arquivo: templates, editor, regras e IA
- * leem tudo daqui.
+ * Paleta, tipografia e tom foram aproximados a partir da observação de materiais públicos
+ * do cliente (identidade de 2025: vermelho e azul mais vivos, símbolo e letras arredondados,
+ * tom acolhedor e otimista). Nome, logo e slogans continuam FICTÍCIOS: nada aqui é arquivo
+ * oficial da marca. Critério, fontes e decisões: docs/MANUAL-DE-MARCA.md.
+ * Para trocar a marca, altere apenas este arquivo: templates, editor, regras e IA leem tudo daqui.
  */
 
-export const BRAND_VERSION = '2026.10-sintetico-v1';
+export const BRAND_VERSION = '2026.10-estudo-v2';
 
 export const COLOR_TOKENS = {
-  primary: '#0E5E6F',
-  primaryDark: '#0A4553',
-  primarySoft: '#D6EEEC',
-  accent: '#E8530A',
-  accentSoft: '#FDE3D3',
-  sun: '#FFC93C',
-  ink: '#13262B',
-  muted: '#41545A',
-  light: '#F4FAF9',
+  primary: '#1A62C4',
+  primaryDark: '#0D3F86',
+  primarySoft: '#DCE9FB',
+  accent: '#E3202B',
+  accentSoft: '#FDE1E2',
+  sun: '#FFC72C',
+  ink: '#14213D',
+  muted: '#46536B',
+  light: '#F3F7FD',
   white: '#FFFFFF',
 } as const;
 
@@ -26,12 +27,12 @@ export type ColorToken = keyof typeof COLOR_TOKENS;
 export const COLOR_TOKEN_NAMES = Object.keys(COLOR_TOKENS) as ColorToken[];
 
 export const COLOR_LABELS: Record<ColorToken, string> = {
-  primary: 'Primária',
-  primaryDark: 'Primária escura',
-  primarySoft: 'Primária suave',
-  accent: 'Destaque (preço)',
-  accentSoft: 'Destaque suave',
-  sun: 'Sol',
+  primary: 'Azul da marca',
+  primaryDark: 'Azul escuro',
+  primarySoft: 'Azul suave',
+  accent: 'Vermelho (preço)',
+  accentSoft: 'Vermelho suave',
+  sun: 'Ouro (selos e Clube)',
   ink: 'Texto',
   muted: 'Texto secundário',
   light: 'Fundo claro',
@@ -39,7 +40,7 @@ export const COLOR_LABELS: Record<ColorToken, string> = {
 };
 
 export const FONT_TOKENS = {
-  display: { family: 'Poppins', fallback: 'Arial, sans-serif', avgCharWidth: 0.62 },
+  display: { family: 'Nunito', fallback: 'Arial, sans-serif', avgCharWidth: 0.56 },
   body: { family: 'Inter', fallback: 'Arial, sans-serif', avgCharWidth: 0.52 },
 } as const;
 
@@ -57,24 +58,34 @@ export function hex(token: string | undefined, fallback: ColorToken = 'ink'): st
 
 /** Diretrizes verbais enviadas à IA em todo pedido (contexto, não treinamento). */
 export const BRAND_VOICE = {
-  name: 'Farmácia Exemplo (marca sintética)',
+  name: 'Farmácia Exemplo (marca sintética inspirada no estudo do cliente)',
   tone: [
-    'Claro, acolhedor e objetivo; fala de cuidado no dia a dia.',
-    'Frases curtas; verbo no imperativo gentil ("Cuide", "Aproveite", "Garanta o seu").',
-    'Sem exageros, sem superlativos absolutos e sem promessas de resultado de saúde.',
-    'No máximo um ponto de exclamação por peça.',
+    'Acolhedor, humano e otimista ("alto astral"): fala de cuidado de perto, no dia a dia real das pessoas.',
+    'Saúde acessível e próxima: a farmácia como parceira de todas as horas, sem tom técnico ou distante.',
+    'Frases curtas; imperativo gentil ("Cuide", "Aproveite", "Garanta o seu", "Conte com a gente").',
+    'Pode usar "a gente" e falar diretamente com "você"; evita jargão e linguagem de bula.',
+    'Economia aparece como benefício para a família, nunca como grito de preço.',
+    'Sem superlativos absolutos e sem promessas de resultado de saúde. No máximo um ponto de exclamação por peça.',
   ],
   doExamples: [
-    'Cuidado que cabe na rotina',
-    'Seu momento de autocuidado começa aqui',
-    'Pele protegida todos os dias',
+    'Cuidar de você faz parte do nosso dia',
+    'Saúde pertinho de você, todo dia',
+    'Seu autocuidado com a gente do lado',
+    'Conte com a gente para cuidar da família',
   ],
-  dontExamples: ['O MELHOR PREÇO DO BRASIL!!!', 'Cura a queda de cabelo', 'Resultado garantido'],
+  dontExamples: ['O MELHOR PREÇO DO BRASIL!!!', 'Cura a queda de cabelo', 'Resultado garantido', 'Corra, é só hoje!!!'],
 };
 
-export const BRAND_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120"><rect x="0" y="10" width="100" height="100" rx="26" fill="${COLOR_TOKENS.primary}"/><rect x="40" y="28" width="20" height="64" rx="6" fill="#fff"/><rect x="18" y="50" width="64" height="20" rx="6" fill="#fff"/><text x="122" y="62" font-family="Poppins, Arial, sans-serif" font-weight="700" font-size="46" fill="${COLOR_TOKENS.primaryDark}">Farmácia</text><text x="124" y="104" font-family="Poppins, Arial, sans-serif" font-weight="600" font-size="34" fill="${COLOR_TOKENS.accent}" letter-spacing="6">EXEMPLO</text></svg>`;
+/** Logo FICTÍCIO: símbolo arredondado com contorno (linguagem observada no estudo), sem copiar o símbolo real. */
+function logoSvg(light: boolean): string {
+  const c = COLOR_TOKENS;
+  const disc = light ? '#FFFFFF' : c.primary;
+  const plus = light ? c.primary : '#FFFFFF';
+  const ring = light ? '#FFFFFF' : c.primary;
+  const word = light ? '#FFFFFF' : c.primaryDark;
+  const word2 = light ? c.sun : c.accent;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120"><circle cx="60" cy="60" r="55" fill="none" stroke="${ring}" stroke-width="5"/><circle cx="60" cy="60" r="44" fill="${disc}"/><rect x="51" y="34" width="18" height="52" rx="9" fill="${plus}"/><rect x="34" y="51" width="52" height="18" rx="9" fill="${plus}"/><circle cx="92" cy="26" r="9" fill="${light ? c.sun : c.accent}"/><text x="134" y="60" font-family="Nunito, Arial, sans-serif" font-weight="800" font-size="48" fill="${word}">Farmácia</text><text x="135" y="104" font-family="Nunito, Arial, sans-serif" font-weight="800" font-size="40" fill="${word2}">Exemplo</text></svg>`;
+}
 
-export const BRAND_LOGO_LIGHT_SVG = BRAND_LOGO_SVG.replace(
-  `fill="${COLOR_TOKENS.primaryDark}"`,
-  'fill="#FFFFFF"',
-);
+export const BRAND_LOGO_SVG = logoSvg(false);
+export const BRAND_LOGO_LIGHT_SVG = logoSvg(true);

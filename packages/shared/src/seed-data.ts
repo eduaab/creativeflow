@@ -13,7 +13,7 @@ export const SEED_PRACAS: Praca[] = [
 
 export const SEED_SEGMENTS: Segment[] = [
   { id: 'geral', name: 'Público geral', description: 'Comunicação ampla, sem recorte específico.', badge: null, involvesChildren: false },
-  { id: 'fidelidade', name: 'Clientes do programa de fidelidade', description: 'Clientes cadastrados que acompanham ofertas com frequência.', badge: 'Clube Exemplo', involvesChildren: false },
+  { id: 'fidelidade', name: 'Clientes do programa de fidelidade', description: 'Clientes identificados no programa de fidelidade (níveis de relacionamento, ofertas personalizadas pelo histórico).', badge: 'Clube Exemplo', involvesChildren: false },
   { id: 'familia', name: 'Famílias com crianças', description: 'Rotina da casa, praticidade, cuidado com os pequenos.', badge: 'Para a família', involvesChildren: true },
   { id: '60mais', name: 'Público 60+', description: 'Clareza, leitura confortável, cuidado contínuo.', badge: null, involvesChildren: false },
 ];
