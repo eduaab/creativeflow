@@ -131,7 +131,7 @@ Transversais: `offers` (fonte comercial), `products`, `segments`, `pracas`, `aud
 | Provedor de IA plugável + modo demonstração | acoplar a um fornecedor | Funciona sem chave; troca para Azure OpenAI sem refatorar. |
 | PGlite em dev, Postgres em produção (mesmo SQL) | SQLite / ORM | Zero setup na demo e caminho direto para Azure Database for PostgreSQL. |
 | Regras em código determinístico | IA julgando conformidade | Bloqueio não pode ser probabilístico. IA só aconselha (revisor de marca). |
-| Manual de marca sintético e versionado | copiar a identidade real a partir de sites públicos | Repositório confidencial e uso de marca de terceiros; a arquitetura não depende dos valores: trocar a marca é editar `brand.ts` (e o seed do catálogo). |
+| Manual sintético **inspirado** em estudo público (cores, formas, tipografia, tom) | copiar logo, nome e slogan reais, ou usar marca genérica | As peças lembram o cliente sem reproduzir ativos protegidos; trocar pelo manual oficial é editar só `brand.ts`. Critério e fontes em `MANUAL-DE-MARCA.md`. |
 | Deploy em contêiner único (Render/Azure Container Apps) | front e back separados | Um artefato, mesmo comportamento local e online, Chromium junto para exportação. |
 
 ## 8. Onde entram os dados reais
