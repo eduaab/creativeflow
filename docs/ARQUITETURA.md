@@ -95,6 +95,20 @@ Cada pedido de conceito leva um pacote de contexto montado na hora (`services/ai
 
 Quanto mais a equipe aprova e reprova, melhor o contexto, sem fine-tuning e com rastreabilidade (a auditoria registra quantos exemplos foram usados).
 
+### Revisão semântica da IA (IA-001)
+
+As regras em código pegam o objetivo (preço digitado, termo da lista, contraste). A IA cobre o que precisa entender
+linguagem: alegação de saúde disfarçada ("adeus à dor"), promessa de preço implícita ("metade do preço"), tom fora da marca,
+estereótipo, incoerência entre texto e produto e remédio dirigido a crianças.
+
+- **Só endurece.** Cada apontamento vira um **alerta** da regra IA-001: a peça perde a herança e vai para a fila de exceções.
+  Ausência de apontamento não libera nada, e a IA nunca gera bloqueio crítico (o motor rebaixa para alerta).
+- **Onde roda:** ao gerar ou editar o conceito (uma chamada cobre todas as peças derivadas) e a cada versão editada ou prévia do Copiloto.
+- **Custo controlado:** o resultado é guardado pelo hash dos textos + produtos; réplicas entre praças, restaurações e reavaliações
+  reaproveitam sem nova chamada. A avaliação das peças só lê o resultado guardado.
+- **Falso positivo:** o revisor descarta com motivo obrigatório; fica na auditoria e as peças são reavaliadas.
+- **Sem IA disponível:** cai na heurística do modo demonstração e a interface avisa.
+
 ### Textos por canal
 
 O mesmo conceito gera, por público, textos de push (título e texto), e-mail (assunto e pré-cabeçalho) e WhatsApp.

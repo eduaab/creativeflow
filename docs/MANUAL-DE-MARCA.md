@@ -73,6 +73,7 @@ Termos proibidos e alegações que exigem autorização são configuráveis em *
 | Logo obrigatório e tamanho mínimo | `MAR-001` |
 | Termos proibidos | `MAR-004` crítico |
 | Tom (exclamações, caixa alta) | `MAR-005` informativo |
+| Tom, alegações e estereótipos que exigem leitura | `IA-001` revisão semântica (alerta; só manda para revisão) |
 | Contraste mínimo | `FMT-004` |
 | Área segura por canal | `FMT-002` |
 

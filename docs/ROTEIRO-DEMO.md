@@ -17,6 +17,7 @@ Antes de gravar: **Marca e regras › Demonstração › Reiniciar base**.
 1. **Ana › Nova campanha** (formulário já preenchido). Ligue **Versão para o Clube de fidelidade** e mostre o contador saltar de 20 para "40 peças a partir de um único conceito", e o alerta do MIP. Troque para **CE** e mostre "protetor sem oferta". O sistema avisa e não inventa preço. Volte para PE e BA.
 2. **Gerar conceito e peças.** Toast: "40 peças em ~1 s". Aba **Conceito**: variantes por público.
    Abra **Textos por canal**: push, e-mail e WhatsApp do mesmo conceito. Troque a praça da prévia e mostre que o preço muda sozinho (vem do cadastro). Digite "por R$ 9,90" no WhatsApp: aparece o bloqueio COM-004.
+   Ainda no Conceito, troque o subtítulo do público Família por "Para os pequenos dizerem adeus à dor" e salve: o painel **Revisão semântica da IA** aponta alegação de saúde disfarçada e remédio dirigido a crianças. Mostre que as regras em código não pegariam isso, e que a IA só manda para revisão. Desfaça a alteração.
 3. **Rui › Aprovações:** aprove o conceito. A barra fica verde: "40/40 liberadas por herança". *O revisor aprova ideias, não arquivos.*
 4. **Ana › Estúdio** (Feed PE Shampoo):
    - Clique no preço: "conteúdo travado, oferta OF-1001-PE". Mostre os demais formatos e praças no topo.

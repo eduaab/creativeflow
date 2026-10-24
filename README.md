@@ -25,6 +25,7 @@ Protótipo funcional para o desafio **Creative AI — marketing em escala com in
 | Pedido em linguagem natural → **patch estruturado**, prévia antes/depois, confirmação | Estúdio › Copiloto | barreira de regras **antes** da IA + filtro **depois** |
 | Replicar uma edição para a mesma peça nas outras praças | Copiloto › escopo | `scope: siblings` |
 | 22 regras determinísticas (comercial, marca, formato, regulatório) | Estúdio › Regras | `packages/shared/src/rules.ts` |
+| **Revisão semântica da IA (IA-001)**: aponta alegação de saúde disfarçada, promessa de preço implícita, tom, estereótipo, incoerência e remédio dirigido a crianças. **Só endurece**: manda para revisão, nunca libera nem bloqueia; o revisor pode descartar falso positivo com motivo | Conceito e Estúdio › Regras | `semantic.service.ts` + `shared/semantic.ts` |
 | **Aprovação por conceito + exceção** (o revisor não aprova 60 arquivos) | Aprovações | `deriveStatus` |
 | Nova versão nunca herda aprovação; erro crítico sempre bloqueia | — | `governance.ts` + testes |
 | Oferta que vence durante a revisão derruba a liberação | Admin › Demonstração | revalidação na exportação |
@@ -96,8 +97,8 @@ demonstração, e a interface mostra **o motivo** ("IA real falhou: …"), tamb�
 pnpm test
 ```
 
-- `packages/shared/test/core.test.ts` (62): todos os 45 templates (formatos × famílias × fundos) saem sem crítico/alerta; textos por canal bloqueiam preço digitado e recebem preço/vigência/advertência do cadastro; preço em texto livre bloqueia; praça sem oferta bloqueia sem inventar preço; oferta vencida/de outra praça bloqueia; patch não altera preço/advertência/cor fora da paleta; MIP sem advertência bloqueia; Rx bloqueia; aprovação por herança e exceção.
-- `apps/api/test/flow.test.ts` (11): jornada ponta a ponta pela API, incluindo PNG real, gate de exportação, textos por canal, exemplos aprovados, data simulada e importação de planilha.
+- `packages/shared/test/core.test.ts` (65): a IA-001 só gera alerta, nunca crítico, e só para o público afetado; todos os 45 templates (formatos × famílias × fundos) saem sem crítico/alerta; textos por canal bloqueiam preço digitado e recebem preço/vigência/advertência do cadastro; preço em texto livre bloqueia; praça sem oferta bloqueia sem inventar preço; oferta vencida/de outra praça bloqueia; patch não altera preço/advertência/cor fora da paleta; MIP sem advertência bloqueia; Rx bloqueia; aprovação por herança e exceção.
+- `apps/api/test/flow.test.ts` (12): revisão semântica tirando a herança, descarte pelo revisor e apontamento em edição manual; jornada ponta a ponta pela API, incluindo PNG real, gate de exportação, textos por canal, exemplos aprovados, data simulada e importação de planilha.
 - `scripts/ui-smoke.mjs`: percorre a interface inteira num navegador headless e salva screenshots (bom para checar antes de gravar o vídeo).
 
 ---
