@@ -185,4 +185,39 @@ describe('jornada completa', () => {
     expect(r.status).toBe(400);
     expect(r.body.error ?? r.body.message).toMatch(/Textos por canal/);
   }, 60_000);
+
+  it('revisão semântica da IA: só endurece, aparece na peça e o revisor pode descartar', async () => {
+    const c = await request(app).post('/api/campaigns').set(as('ana')).send({ ...briefing, name: 'Semântica', pracas: ['PE'], skus: ['SKU-1001'], segments: ['geral', 'fidelidade'], formats: ['feed'] });
+    const id = c.body.id;
+    await request(app).post(`/api/campaigns/${id}/concept/generate`).set(as('ana')).send({});
+    const s0 = await request(app).get(`/api/campaigns/${id}/semantic`).set(as('ana'));
+    expect(s0.body.findings).toEqual([]); // conceito do modo demonstração não tem riscos
+    // conceito editado com pressão de urgência no público fidelidade
+    const d = await request(app).get(`/api/campaigns/${id}`).set(as('ana'));
+    const data = d.body.concept.data;
+    data.variants.find((v: { segmentId: string }) => v.segmentId === 'fidelidade').subheadline = 'Corra, última chance para garantir seus itens.';
+    const ed = await request(app).put(`/api/campaigns/${id}/concept`).set(as('ana')).send(data);
+    await request(app).post(`/api/campaigns/${id}/generate`).set(as('ana')).send({});
+    const s1 = await request(app).get(`/api/campaigns/${id}/semantic`).set(as('ana'));
+    expect(s1.body.findings.length).toBe(1);
+    expect(s1.body.findings[0].category).toBe('tom_de_voz');
+    const r = await request(app).post(`/api/concepts/${ed.body.id}/review`).set(as('rui')).send({ decision: 'aprovado' });
+    expect(r.body.statusCounts.aprovado_por_heranca).toBe(1); // geral herda
+    expect(r.body.statusCounts.aguardando_revisao).toBe(1); // fidelidade vai para exceção por causa da IA
+    // revisor descarta o apontamento: a peça volta a herdar
+    const dis = await request(app).post(`/api/semantic/${s1.body.hash}/dismiss`).set(as('rui')).send({ findingId: s1.body.findings[0].id, reason: 'Campanha de última semana, aprovado pelo jurídico', campaignId: id });
+    expect(dis.status).toBe(200);
+    expect(dis.body.statusCounts.aprovado_por_heranca).toBe(2);
+    // criador não pode descartar
+    const no = await request(app).post(`/api/semantic/${s1.body.hash}/dismiss`).set(as('ana')).send({ findingId: s1.body.findings[0].id, reason: 'quero', campaignId: id });
+    expect(no.status).toBe(403);
+    // edição manual com alegação de saúde disfarçada é apontada na versão
+    const pc = (await request(app).get(`/api/campaigns/${id}`).set(as('ana'))).body.creatives.find((x: { segmentId: string }) => x.segmentId === 'geral');
+    const cur = (await request(app).get(`/api/creatives/${pc.id}`).set(as('ana'))).body.creative.current.id;
+    const v = await request(app).patch(`/api/creatives/${pc.id}/layers`).set(as('ana')).send({ baseVersionId: cur, ops: [{ op: 'set', layerId: 'subheadline', path: 'text', value: 'Dê adeus aos fios ressecados.' }] });
+    const ia = v.body.version.validation.results.filter((x: { ruleId: string; passed: boolean }) => x.ruleId === 'IA-001' && !x.passed);
+    expect(ia).toHaveLength(1);
+    expect(ia[0].layerId).toBe('subheadline');
+    expect(v.body.version.validation.passed).toBe(true); // nunca crítico
+  }, 60_000);
 });

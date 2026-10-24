@@ -19,6 +19,7 @@ import { badRequest, notFound } from '../utils/errors';
 import { newId } from '../utils/id';
 import { runAI } from './ai';
 import { notifyReviewers } from './notify.service';
+import { checkConcept } from './semantic.service';
 import { getRulesConfig, getToday } from './settings.service';
 import { offerSource } from './sources';
 import { evaluateVersion } from './validation.service';
@@ -113,9 +114,10 @@ export async function generateConcept(campaignId: string, userId: string, feedba
   );
   const data = ensureVariants(ConceptSchema.parse(out.result), b);
   const concept = await insertConcept({ id: newId('cpt'), campaignId, data, source: out.provider + (out.fallback ? ' (contingência)' : ''), createdBy: userId });
+  const semantic = await checkConcept(campaign, concept, userId);
   await audit({ campaignId, actorId: userId, type: 'concept.generated', payload: { conceptId: concept.id, number: concept.number, provider: out.provider, fallback: out.fallback, error: out.error, ms: out.ms, feedback, examples: approvedExamples.length } });
   await touchCampaign(campaignId);
-  return { concept, ai: { provider: out.provider, fallback: out.fallback, ms: out.ms, examples: approvedExamples.length } };
+  return { concept, ai: { provider: out.provider, fallback: out.fallback, ms: out.ms, examples: approvedExamples.length, semanticFindings: semantic?.findings.length ?? 0 } };
 }
 
 /** Edição humana do conceito (textos globais) → novo conceito, propaga para peças derivadas. */
@@ -124,6 +126,7 @@ export async function editConcept(campaignId: string, data: unknown, userId: str
   if (!campaign) throw notFound('Campanha');
   const parsed = ensureVariants(ConceptSchema.parse(data), campaign.briefing);
   const concept = await insertConcept({ id: newId('cpt'), campaignId, data: parsed, source: 'manual', createdBy: userId });
+  await checkConcept(campaign, concept, userId);
   await audit({ campaignId, actorId: userId, type: 'concept.edited', payload: { conceptId: concept.id, number: concept.number } });
   return concept;
 }

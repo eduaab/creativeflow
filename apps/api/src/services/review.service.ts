@@ -7,7 +7,7 @@ import { badRequest, conflict, notFound } from '../utils/errors';
 import { messageIssues } from './messages.service';
 import { evaluateCreativeById, evaluateVersion } from './validation.service';
 
-async function reevaluateCampaign(campaignId: string) {
+export async function reevaluateCampaign(campaignId: string) {
   const campaign = await getCampaign(campaignId);
   const creatives = await listCreatives(campaignId);
   const versions = await getCurrentVersions(creatives.map((c) => c.id));

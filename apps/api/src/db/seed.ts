@@ -8,7 +8,7 @@ import { setSetting } from '../models/governance.model';
 export async function seedDatabase(opts: { reset?: boolean; today?: string } = {}) {
   if (opts.reset) {
     await db().exec(
-      'delete from audit_events; delete from reviews; delete from ai_proposals; delete from versions; delete from creatives; delete from concepts; delete from campaigns; delete from exports; delete from critiques; delete from learnings; delete from offers; delete from settings;',
+      'delete from audit_events; delete from reviews; delete from ai_proposals; delete from versions; delete from creatives; delete from concepts; delete from campaigns; delete from exports; delete from critiques; delete from semantic_checks; delete from learnings; delete from offers; delete from settings;',
     );
   }
   for (const u of SEED_USERS) await upsertUser(u);

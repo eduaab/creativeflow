@@ -6,6 +6,7 @@ import {
   diffDocs,
   filterOps,
   validateCreative,
+  semanticResults,
   PROTECTED_CONTENT_ROLES,
   type CreativeDoc,
   type PatchOp,
@@ -30,6 +31,7 @@ import { newId } from '../utils/id';
 import { runAI, type EditResult, type LayerSummary } from './ai';
 import { buildContext, getSegment } from './context.service';
 import { getRulesConfig } from './settings.service';
+import { checkDoc } from './semantic.service';
 import { evaluateVersion } from './validation.service';
 
 async function loadCurrent(creativeId: string): Promise<{ creative: CreativeRow; version: VersionRow }> {
@@ -70,6 +72,7 @@ async function saveNewVersion(p: {
     createdAt: new Date().toISOString(),
   };
   await insertVersion(v);
+  await checkDoc(p.creative, p.doc); // revisão semântica dos textos novos (reaproveitada se o texto já foi visto)
   const ev = await evaluateVersion({ ...p.creative, currentVersionId: null }, v);
   await audit({
     campaignId: p.creative.campaignId,
@@ -179,7 +182,9 @@ export async function proposeAiEdit(creativeId: string, raw: unknown, userId: st
   const previewDoc = applyOps(version.doc, allowed);
   const diff = diffDocs(version.doc, previewDoc);
   const ctx = await buildContext(previewDoc, campaign);
-  const validation = validateCreative(previewDoc, ctx, { config: rules, segment: await getSegment(creative.segmentId) });
+  const semCheck = await checkDoc(creative, previewDoc);
+  const extra = semanticResults(semCheck, { segmentId: creative.segmentId, format: previewDoc.format });
+  const validation = validateCreative(previewDoc, ctx, { config: rules, segment: await getSegment(creative.segmentId), extra });
   const data = { summary: result.summary, ops: allowed, rejected, refusal: null, provider: out.provider, fallback: out.fallback, error: out.error, ms: out.ms };
   await insertProposal({ id: proposalId, creativeId, baseVersionId: version.id, instruction: body.instruction, scope: body.scope, data, status: 'pendente', authorId: userId });
   await audit({ ...base, type: 'ai.edit.proposed', payload: { proposalId, instruction: body.instruction, ops: allowed.length, provider: out.provider, fallback: out.fallback, aiError: out.error, ms: out.ms } });

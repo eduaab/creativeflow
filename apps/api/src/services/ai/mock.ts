@@ -7,12 +7,13 @@ import {
   MESSAGE_LIMITS,
   wordsShorten,
   type ChannelMessages,
+  type SemanticCategory,
   type Concept,
   type CopyVariant,
   type CreativeDoc,
   type Layer,
 } from '@cf/shared';
-import type { AIProvider, ConceptInput, Critique, CritiqueInput, EditInput, EditResult } from './types';
+import type { AIProvider, ConceptInput, Critique, CritiqueInput, EditInput, EditResult, SemanticInput, SemanticResult } from './types';
 
 /**
  * Provedor determinístico. Permite desenvolver e demonstrar sem chave de API e serve
@@ -423,8 +424,43 @@ function critique(i: CritiqueInput): Critique {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/* Revisão semântica (modo demonstração): heurísticas transparentes     */
+/* ------------------------------------------------------------------ */
+
+const SEMANTIC_PATTERNS: { re: RegExp; category: SemanticCategory; explanation: string; suggestion: string }[] = [
+  { re: /\b(adeus|nunca mais|acaba com|acabe com|livre d[aeo]s?|fim d[aeo]s?|100% eficaz|sem dor|elimina|zera)\b/, category: 'alegacao_saude', explanation: 'Sugere resultado de saúde que não está entre as alegações autorizadas.', suggestion: 'Fale do cuidado na rotina, sem prometer resultado.' },
+  { re: /\b(metade do preco|menor (preco|valor)|mais barat[oa]|mais em conta|imperdivel|queima de estoque|preco de banana)\b/, category: 'promessa_comercial', explanation: 'Promete vantagem de preço sem vir do cadastro de ofertas.', suggestion: 'Deixe o preço para a etiqueta vinculada à oferta.' },
+  { re: /\b(corra|urgente|ultima chance|so hoje|nao perca|acabando)\b/, category: 'tom_de_voz', explanation: 'Pressão de urgência foge do tom acolhedor da marca.', suggestion: 'Convide sem pressionar: "Aproveite com calma no app".' },
+  { re: /\b(oxente|arretad[oa]|vixe|cabra da peste|mainha|painho|coisa de mulher|coisa de velho)\b/, category: 'estereotipo', explanation: 'Clichê regional ou de grupo; a personalização deve vir do objetivo.', suggestion: 'Use linguagem neutra e próxima, sem marcar região ou grupo.' },
+];
+const KID_WORDS = /\b(pequenos?|criancas?|filhos?|bebes?|criancada|baixinhos?)\b/;
+
+function semanticReview(i: SemanticInput): SemanticResult {
+  const hasDrug = i.products.some((p) => p.category === 'mip' || p.category === 'rx');
+  const findings: SemanticResult['findings'] = [];
+  for (const t of i.texts) {
+    const n = norm(t.text);
+    for (const p of SEMANTIC_PATTERNS) {
+      const m = p.re.exec(n);
+      if (m) findings.push({ ref: t.ref, category: p.category, excerpt: excerptAt(t.text, m.index, m[0].length), explanation: p.explanation, suggestion: p.suggestion });
+    }
+    const k = KID_WORDS.exec(n);
+    if (hasDrug && k) findings.push({ ref: t.ref, category: 'publico_infantil', excerpt: excerptAt(t.text, k.index, k[0].length), explanation: 'Peça com medicamento usando linguagem dirigida a crianças.', suggestion: 'Fale com o adulto responsável e mantenha o tom informativo.' });
+  }
+  return { findings };
+}
+
+/** Trecho original (com acentos) em volta da posição encontrada no texto normalizado. */
+function excerptAt(text: string, idx: number, len: number): string {
+  const start = Math.max(0, text.lastIndexOf(' ', Math.max(0, idx - 12)) + 1);
+  const endSpace = text.indexOf(' ', idx + len + 12);
+  return text.slice(start, endSpace === -1 ? undefined : endSpace).trim();
+}
+
 export const mockProvider: AIProvider = {
   name: 'mock',
+  semanticReview: async (i) => semanticReview(i),
   generateConcept: async (i) => generateConcept(i),
   interpretEdit: async (i) => interpretEdit(i),
   critique: async (i) => critique(i),

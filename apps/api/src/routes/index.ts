@@ -68,6 +68,9 @@ export function apiRouter(): Router {
   r.post('/concepts/:id/review', REVISA, ah(Review.concept));
   r.post('/creatives/:id/review', REVISA, ah(Review.creative));
   r.post('/reviews/batch-approve', REVISA, ah(Review.batch));
+  r.get('/campaigns/:id/semantic', ah(Review.semanticConcept));
+  r.get('/creatives/:id/semantic', ah(Review.semanticCreative));
+  r.post('/semantic/:hash/dismiss', REVISA, ah(Review.dismissSemantic));
 
   // administração
   r.get('/admin/rules', ah(Admin.rules));

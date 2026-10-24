@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { env } from '../../config/env';
-import { conceptSystemPrompt, conceptUserPrompt, critiqueSystemPrompt, editSystemPrompt, editUserPrompt } from './prompts';
-import { LenientConceptSchema, LenientCritiqueSchema, LenientEditSchema } from './lenient';
+import { conceptSystemPrompt, conceptUserPrompt, critiqueSystemPrompt, editSystemPrompt, editUserPrompt, semanticSystemPrompt, semanticUserPrompt } from './prompts';
+import { LenientConceptSchema, LenientCritiqueSchema, LenientEditSchema, LenientSemanticSchema } from './lenient';
 import type { AIProvider } from './types';
 
 /**
@@ -179,6 +179,8 @@ export const llmProvider: AIProvider = {
     callJson({ name: 'conceito_campanha', system: conceptSystemPrompt(i), user: [{ type: 'text', text: conceptUserPrompt(i) }], schema: LenientConceptSchema }),
   interpretEdit: (i) =>
     callJson({ name: 'edicao_peca', system: editSystemPrompt(i), user: [{ type: 'text', text: editUserPrompt(i) }], schema: LenientEditSchema, maxTokens: 1500 }),
+  semanticReview: (i) =>
+    callJson({ name: 'revisao_semantica', system: semanticSystemPrompt(i), user: [{ type: 'text', text: semanticUserPrompt(i) }], schema: LenientSemanticSchema, maxTokens: 1500 }),
   critique: (i) =>
     callJson({
       name: 'critica_peca',

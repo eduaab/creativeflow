@@ -1,4 +1,4 @@
-import { LAYOUT_FAMILIES, MESSAGE_LIMITS, wordsShorten, type LayoutFamily } from '@cf/shared';
+import { LAYOUT_FAMILIES, MESSAGE_LIMITS, SEMANTIC_CATEGORIES, wordsShorten, type LayoutFamily, type SemanticCategory } from '@cf/shared';
 import { z } from 'zod';
 
 /**
@@ -77,4 +77,25 @@ export const LenientCritiqueSchema = z.object({
     .array(z.object({ text: z.string(), instruction: z.string() }))
     .default([])
     .transform((a) => a.slice(0, 5)),
+});
+
+const SEM_ALIASES: Record<string, SemanticCategory> = { saude: 'alegacao_saude', alegacao: 'alegacao_saude', preco: 'promessa_comercial', comercial: 'promessa_comercial', tom: 'tom_de_voz', estereotipo: 'estereotipo', regional: 'estereotipo', coerencia: 'coerencia', crianca: 'publico_infantil', infantil: 'publico_infantil' };
+export const LenientSemanticSchema = z.object({
+  findings: z
+    .array(
+      z.object({
+        ref: z.string(),
+        category: z.string().transform((c): SemanticCategory => {
+          const k = c.toLowerCase().trim();
+          if ((SEMANTIC_CATEGORIES as readonly string[]).includes(k)) return k as SemanticCategory;
+          const hit = Object.keys(SEM_ALIASES).find((a) => k.includes(a));
+          return hit ? SEM_ALIASES[hit] : 'tom_de_voz';
+        }),
+        excerpt: cut(160),
+        explanation: cut(300),
+        suggestion: z.string().nullable().optional().transform((s) => (s && s.trim() ? s.trim().slice(0, 200) : null)),
+      }),
+    )
+    .default([])
+    .transform((a) => a.slice(0, 12)),
 });

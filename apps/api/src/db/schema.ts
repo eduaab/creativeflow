@@ -152,6 +152,16 @@ create table if not exists exports (
   created_at timestamptz not null default now()
 );
 
+create table if not exists semantic_checks (
+  hash text primary key,
+  provider text not null,
+  fallback boolean not null default false,
+  error text,
+  findings jsonb not null,
+  dismissed jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists critiques (
   id text primary key,
   creative_id text not null,

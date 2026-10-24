@@ -1,4 +1,4 @@
-import type { Briefing, Concept, CopyVariant, CreativeDoc, FormatSpec, Product, RulesConfig, Segment } from '@cf/shared';
+import { SEMANTIC_CATEGORIES, type Briefing, type Concept, type CopyVariant, type CreativeDoc, type FormatSpec, type Product, type RulesConfig, type Segment, type SemanticText } from '@cf/shared';
 import { z } from 'zod';
 
 export interface ConceptInput {
@@ -81,9 +81,31 @@ export const CritiqueSchema = z.object({
 });
 export type Critique = z.infer<typeof CritiqueSchema>;
 
+export interface SemanticInput {
+  texts: SemanticText[];
+  products: Product[];
+  segments: Segment[];
+  learnings: string[];
+  rules: RulesConfig;
+}
+
+export const SemanticResultSchema = z.object({
+  findings: z.array(
+    z.object({
+      ref: z.string(),
+      category: z.enum(SEMANTIC_CATEGORIES),
+      excerpt: z.string(),
+      explanation: z.string(),
+      suggestion: z.string().nullable(),
+    }),
+  ),
+});
+export type SemanticResult = z.infer<typeof SemanticResultSchema>;
+
 export interface AIProvider {
   name: string;
   generateConcept(input: ConceptInput): Promise<Concept>;
   interpretEdit(input: EditInput): Promise<EditResult>;
   critique(input: CritiqueInput): Promise<Critique>;
+  semanticReview(input: SemanticInput): Promise<SemanticResult>;
 }

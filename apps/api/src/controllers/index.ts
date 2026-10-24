@@ -29,7 +29,8 @@ import { importOffers } from '../services/import.service';
 import { campaignMetrics, overview } from '../services/metrics.service';
 import { renderPng } from '../services/render.service';
 import { getCampaignMessages } from '../services/messages.service';
-import { batchApprove, reviewConcept, reviewCreative, reviewQueue } from '../services/review.service';
+import { dismissFinding, semanticForConcept, semanticForCreative } from '../services/semantic.service';
+import { reevaluateCampaign, batchApprove, reviewConcept, reviewCreative, reviewQueue } from '../services/review.service';
 import { RulesConfigPatchSchema, getBaseline, getRulesConfig, getToday, setBaseline, setSimulatedToday, updateRulesConfig } from '../services/settings.service';
 import { offerSource } from '../services/sources';
 import { evaluateCreativeById, evaluateVersion } from '../services/validation.service';
@@ -261,6 +262,17 @@ export const ReviewController = {
   async batch(req: Request, res: Response) {
     const { creativeIds } = z.object({ creativeIds: z.array(z.string()).min(1).max(200) }).parse(req.body);
     res.json(await batchApprove(creativeIds, uid(req)));
+  },
+  async semanticConcept(req: Request, res: Response) {
+    res.json(await semanticForConcept(param(req, 'id')));
+  },
+  async semanticCreative(req: Request, res: Response) {
+    res.json(await semanticForCreative(param(req, 'id')));
+  },
+  async dismissSemantic(req: Request, res: Response) {
+    const b = z.object({ findingId: z.string(), reason: z.string().min(3).max(500), campaignId: z.string() }).parse(req.body);
+    await dismissFinding(param(req, 'hash'), b.findingId, b.reason, uid(req), b.campaignId);
+    res.json({ statusCounts: await reevaluateCampaign(b.campaignId) });
   },
 };
 

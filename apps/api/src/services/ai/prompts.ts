@@ -1,5 +1,5 @@
-import { BRAND_VOICE, CATEGORY_LABELS, COLOR_TOKEN_NAMES, LAYOUT_FAMILIES, BACKGROUND_STYLES, MESSAGE_LIMITS } from '@cf/shared';
-import type { ConceptInput, CritiqueInput, EditInput } from './types';
+import { SEMANTIC_LABELS, BRAND_VOICE, CATEGORY_LABELS, COLOR_TOKEN_NAMES, LAYOUT_FAMILIES, BACKGROUND_STYLES, MESSAGE_LIMITS } from '@cf/shared';
+import type { ConceptInput, CritiqueInput, EditInput, SemanticInput } from './types';
 
 /**
  * "Treinamento" da IA = engenharia de contexto. A marca, as regras e os aprendizados
@@ -115,4 +115,37 @@ Avalie: hierarquia visual (o que se lê primeiro), legibilidade no celular, equi
 NÃO avalie se o preço está correto (isso é verificado por regras determinísticas).
 "suggestions[].instruction" deve ser um pedido curto que o usuário poderia enviar ao copiloto do estúdio (ex.: "aumente o produto e reduza o subtítulo").
 Nota de 0 a 100. Seja específico e honesto; não invente problemas.`;
+}
+
+export function semanticSystemPrompt(i: SemanticInput): string {
+  return `Você é revisor(a) de conformidade de comunicação de varejo farmacêutico no Brasil. Lê TEXTOS de campanha e aponta riscos.
+
+${brandBlock(i.learnings, i.rules.forbiddenTerms)}
+
+Aponte SOMENTE riscos reais, nestas categorias:
+${Object.entries(SEMANTIC_LABELS).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+
+Critérios:
+- alegacao_saude: promessa de cura, prevenção, tratamento ou resultado ("adeus à dor", "nunca mais", "acaba com"), mesmo sem palavras da lista proibida, quando não estiver nas alegações autorizadas do produto.
+- promessa_comercial: vantagem de preço ou condição implícita ("metade do preço", "o mais em conta da cidade", "imperdível"). Preço só pode vir do cadastro.
+- tom_de_voz: agressivo, alarmista, pressão de urgência, frio/técnico demais ou fora do tom da marca acima.
+- estereotipo: clichês de região, gênero, idade ou classe; personalização deve vir do objetivo, não de estereótipo.
+- coerencia: texto que não combina com os produtos informados (ex.: falar de sol num anúncio de fralda).
+- publico_infantil: medicamento (categoria MIP ou prescrição) comunicado de forma direcionada a crianças.
+
+NÃO aponte: preço digitado ou termos da lista proibida (já bloqueados por regras em código), gosto pessoal, gramática irrelevante.
+Se não houver risco, devolva "findings": [].
+Para cada apontamento: "ref" exatamente como recebido, "excerpt" com o trecho literal, "explanation" curta (1 frase) e "suggestion" com uma reescrita segura (ou null).`;
+}
+
+export function semanticUserPrompt(i: SemanticInput): string {
+  return JSON.stringify(
+    {
+      produtos: i.products.map((p) => ({ nome: p.name, categoria: CATEGORY_LABELS[p.category], alegacoesAutorizadas: p.claims })),
+      publicos: i.segments.map((s) => ({ id: s.id, nome: s.name, envolveCriancas: s.involvesChildren })),
+      textos: i.texts.map((t) => ({ ref: t.ref, campo: t.label, publico: t.segmentId, texto: t.text })),
+    },
+    null,
+    1,
+  );
 }

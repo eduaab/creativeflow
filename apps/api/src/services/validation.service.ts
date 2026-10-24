@@ -4,6 +4,7 @@ import { getCreative, getVersion, updateCreativeState, updateVersionValidation, 
 import { getDecisionForVersion } from '../models/governance.model';
 import { notFound } from '../utils/errors';
 import { buildContext, getSegment } from './context.service';
+import { semanticResultsFor } from './semantic.service';
 import { getRulesConfig } from './settings.service';
 
 export interface Evaluation {
@@ -21,8 +22,9 @@ export async function evaluateVersion(creative: CreativeRow, version: VersionRow
   const camp = campaign ?? (await getCampaign(creative.campaignId));
   if (!camp) throw notFound('Campanha');
   const [ctx, rules, segment] = await Promise.all([buildContext(version.doc, camp), getRulesConfig(), getSegment(creative.segmentId)]);
-  const report = validateCreative(version.doc, ctx, { config: rules, segment });
   const concept = version.conceptId ? await getConcept(version.conceptId) : undefined;
+  const extra = await semanticResultsFor(creative, version, concept, camp);
+  const report = validateCreative(version.doc, ctx, { config: rules, segment, extra });
   const decision = await getDecisionForVersion(version.id);
   const input = { origin: version.origin, validation: report, conceptApproved: concept?.status === 'aprovado', decisionForVersion: decision };
   const status = deriveStatus(input);
