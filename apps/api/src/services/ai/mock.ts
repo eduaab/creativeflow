@@ -43,8 +43,9 @@ const THEMES: ThemeBank[] = [
       ['Seu momento de autocuidado começa aqui', 'Seu momento de autocuidado'],
       ['Cuidado que cabe na sua rotina', 'Cuidado na sua rotina'],
       ['Autocuidado todo dia, do seu jeito', 'Autocuidado todo dia'],
+      ['Seu autocuidado com a gente do lado', 'Autocuidado com a gente'],
     ],
-    subs: ['Itens para a rotina de cuidados, com a praticidade de comprar perto de você.', 'Separe um tempo para você e encontre tudo para a sua rotina.'],
+    subs: ['Itens para a rotina de cuidados, com a praticidade de comprar pertinho de você.', 'Separe um tempo para você. O resto a gente ajuda a resolver.'],
   },
   {
     match: /verao|sol\b|solar|praia|calor/,
@@ -74,6 +75,15 @@ const THEMES: ThemeBank[] = [
     subs: ['Praticidade para a rotina da casa, do banho ao dia a dia dos pequenos.'],
   },
   {
+    match: /sao joao|junin|carnaval|festa|feriado/,
+    theme: 'Festa com cuidado',
+    headlines: [
+      ['Aproveite a festa com mais cuidado', 'Festa com mais cuidado'],
+      ['Curta cada momento com saúde', 'Curta com saúde'],
+    ],
+    subs: ['Hidratação, proteção e o que mais você precisar para aproveitar bem os dias de festa.'],
+  },
+  {
     match: /bem.estar|vitamina|saude|energia/,
     theme: 'Bem-estar no dia a dia',
     headlines: [
@@ -88,11 +98,12 @@ const DEFAULT_THEME: ThemeBank = {
   match: /.*/,
   theme: 'Cuidado no dia a dia',
   headlines: [
+    ['Cuidar de você faz parte do nosso dia', 'Cuidar de você'],
     ['Ofertas para cuidar de você', 'Para cuidar de você'],
     ['Cuidado que cabe na sua rotina', 'Cuidado na sua rotina'],
     ['Tudo para a sua rotina de cuidados', 'Sua rotina de cuidados'],
   ],
-  subs: ['Itens selecionados para o seu dia a dia, perto de você e no app.'],
+  subs: ['Itens selecionados para o seu dia a dia, pertinho de você e no app.'],
 };
 
 function pickTheme(text: string): ThemeBank {
