@@ -55,6 +55,18 @@ export const LAYOUTS: Record<Exclude<Orientation, 'sheet'>, Record<LayoutFamily,
       legal: [0.06, 0.885, 0.88, 0.035],
       validity: [0.06, 0.925, 0.88, 0.045],
     },
+    faixa: {
+      logo: [0.06, 0.05, 0.24, 0.055],
+      badge: [0.7, 0.05, 0.24, 0.06],
+      headline: [0.06, 0.13, 0.88, 0.17],
+      subheadline: [0.06, 0.31, 0.44, 0.08],
+      product: [0.52, 0.37, 0.42, 0.43],
+      name: [0.52, 0.81, 0.42, 0.05],
+      price: [0.06, 0.48, 0.4, 0.15],
+      cta: [0.06, 0.67, 0.32, 0.075],
+      legal: [0.06, 0.885, 0.88, 0.035],
+      validity: [0.06, 0.925, 0.88, 0.045],
+    },
   },
   portrait: {
     classico: {
@@ -80,6 +92,18 @@ export const LAYOUTS: Record<Exclude<Orientation, 'sheet'>, Record<LayoutFamily,
       cta: [0.34, 0.855, 0.32, 0.045],
       legal: [0.06, 0.91, 0.88, 0.025],
       validity: [0.06, 0.935, 0.88, 0.04],
+    },
+    faixa: {
+      logo: [0.06, 0.04, 0.24, 0.045],
+      badge: [0.7, 0.04, 0.24, 0.05],
+      headline: [0.06, 0.115, 0.88, 0.16],
+      subheadline: [0.06, 0.29, 0.88, 0.07],
+      product: [0.44, 0.39, 0.5, 0.38],
+      name: [0.44, 0.775, 0.5, 0.04],
+      price: [0.06, 0.47, 0.36, 0.13],
+      cta: [0.06, 0.63, 0.32, 0.06],
+      legal: [0.06, 0.86, 0.88, 0.03],
+      validity: [0.06, 0.9, 0.88, 0.05],
     },
   },
   tall: {
@@ -107,6 +131,18 @@ export const LAYOUTS: Record<Exclude<Orientation, 'sheet'>, Record<LayoutFamily,
       legal: [0.07, 0.786, 0.86, 0.014],
       validity: [0.07, 0.802, 0.86, 0.018],
     },
+    faixa: {
+      logo: [0.07, 0.135, 0.26, 0.035],
+      badge: [0.66, 0.137, 0.27, 0.032],
+      headline: [0.07, 0.19, 0.86, 0.13],
+      subheadline: [0.07, 0.33, 0.86, 0.055],
+      product: [0.2, 0.4, 0.6, 0.22],
+      name: [0.15, 0.625, 0.7, 0.028],
+      price: [0.24, 0.66, 0.52, 0.078],
+      cta: [0.3, 0.745, 0.4, 0.033],
+      legal: [0.07, 0.782, 0.86, 0.016],
+      validity: [0.07, 0.8, 0.86, 0.02],
+    },
   },
   wide: {
     classico: {
@@ -132,6 +168,18 @@ export const LAYOUTS: Record<Exclude<Orientation, 'sheet'>, Record<LayoutFamily,
       price: [0.71, 0.27, 0.22, 0.38],
       legal: [0.47, 0.76, 0.22, 0.1],
       validity: [0.71, 0.7, 0.26, 0.22],
+    },
+    faixa: {
+      logo: [0.025, 0.07, 0.12, 0.13],
+      headline: [0.025, 0.26, 0.39, 0.36],
+      subheadline: [0.025, 0.63, 0.38, 0.14],
+      cta: [0.025, 0.8, 0.15, 0.13],
+      product: [0.47, 0.06, 0.22, 0.8],
+      name: [0.47, 0.87, 0.22, 0.08],
+      badge: [0.72, 0.07, 0.18, 0.12],
+      price: [0.72, 0.24, 0.2, 0.36],
+      legal: [0.72, 0.64, 0.25, 0.1],
+      validity: [0.72, 0.76, 0.25, 0.17],
     },
   },
 };
@@ -169,6 +217,9 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
   const L = LAYOUTS[spec.orientation][input.family];
   const b = Math.max(Math.min(W, H) / 1080, 0.75);
   const center = input.family === 'destaque';
+  const band = bandRect(input.family, spec.orientation, W, H);
+  const onBand = (r: { x: number; y: number; w: number; h: number }) =>
+    !!band && r.x + r.w / 2 >= band.x && r.x + r.w / 2 <= band.x + band.w && r.y + r.h / 2 >= band.y && r.y + r.h / 2 <= band.y + band.h;
   const sku = input.skus[0];
   const layers: Layer[] = [];
   let z = 10;
@@ -180,10 +231,10 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
   const subText = wordsShorten(input.variant.subheadline, spec.maxSubheadline);
 
   const product = px(L.product, W, H);
-  layers.push(...decorLayers(input.backgroundStyle, product, W, H, input.family));
+  layers.push(...decorLayers(input.backgroundStyle, product, W, H, input.family, band));
 
   const lg = px(L.logo, W, H);
-  layers.push({ id: 'logo', role: 'logo', kind: 'logo', ...lg, z: z++, style: {} });
+  layers.push({ id: 'logo', role: 'logo', kind: 'logo', ...lg, z: z++, style: onBand(lg) ? { fill: 'white' } : {} });
 
   if (input.variant.badge) {
     const bx = px(L.badge, W, H);
@@ -219,9 +270,9 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
       font: 'display',
       fontWeight: 700,
       lineHeight: 1.08,
-      color: 'primaryDark',
+      color: onBand(hl) ? 'white' : 'primaryDark',
       align: center ? 'center' : 'left',
-      valign: center ? 'middle' : 'bottom',
+      valign: center || band ? 'middle' : 'bottom',
       fontSize: fitFontSize(headlineText, hl, { min: 34 * b, max: Math.min(hl.h * 0.62, 120 * b), font: 'display', weight: 700, lineHeight: 1.08 }),
     },
   });
@@ -238,7 +289,7 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
       font: 'body',
       fontWeight: 500,
       lineHeight: 1.25,
-      color: 'muted',
+      color: onBand(sb) ? 'white' : 'muted',
       align: center ? 'center' : 'left',
       valign: 'top',
       fontSize: fitFontSize(subText, sb, { min: 20 * b, max: Math.min(sb.h * 0.5, 44 * b), font: 'body', weight: 500, lineHeight: 1.25 }),
@@ -256,8 +307,8 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
     style: {
       font: 'display',
       fontWeight: 600,
-      color: 'white',
-      bg: 'primary',
+      color: onBand(ct) ? 'ink' : 'white',
+      bg: onBand(ct) ? 'sun' : 'primary',
       radius: Math.round(ct.h / 2),
       align: 'center',
       valign: 'middle',
@@ -363,13 +414,44 @@ export function buildCreativeDoc(input: BuildInput): CreativeDoc {
   };
 }
 
+type Rect = { x: number; y: number; w: number; h: number };
+
+/** Faixa de cor da família "faixa": horizontal no topo (ou vertical à esquerda no banner). */
+export function bandRect(family: LayoutFamily, orientation: Orientation, W: number, H: number): Rect | null {
+  if (family !== 'faixa') return null;
+  if (orientation === 'wide') return { x: 0, y: 0, w: Math.round(W * 0.44), h: H };
+  const ratio = orientation === 'tall' ? 0.44 : orientation === 'portrait' ? 0.43 : 0.43;
+  return { x: 0, y: 0, w: W, h: Math.round(H * ratio) };
+}
+
 function decorLayers(
   style: BackgroundStyle,
-  product: { x: number; y: number; w: number; h: number },
+  product: Rect,
   W: number,
   H: number,
   family: LayoutFamily,
+  band: Rect | null = null,
 ): Layer[] {
+  if (band) {
+    const out: Layer[] = [{ id: 'decor-band', role: 'decor', kind: 'shape', ...band, z: 1, style: { shape: 'rect', fill: 'primary' } }];
+    const t = Math.round(Math.min(W, H) * 0.018);
+    if (style === 'blocos') {
+      const vertical = band.h === H;
+      out.push({
+        id: 'decor-2', role: 'decor', kind: 'shape',
+        ...(vertical ? { x: band.w, y: 0, w: t, h: H } : { x: 0, y: band.h, w: W, h: t }),
+        z: 2, style: { shape: 'rect', fill: 'sun' },
+      });
+    } else if (style === 'circulos') {
+      const d = Math.round(Math.min(product.w, product.h) * 1.1);
+      out.push({
+        id: 'decor-2', role: 'decor', kind: 'shape',
+        x: Math.round(product.x + product.w / 2 - d / 2), y: Math.round(product.y + product.h / 2 - d / 2), w: d, h: d,
+        z: 2, style: { shape: 'circle', fill: 'accentSoft' },
+      });
+    }
+    return out;
+  }
   if (style === 'solido') return [];
   if (style === 'circulos') {
     const d = Math.round(Math.max(product.w, product.h) * 1.02);

@@ -166,7 +166,7 @@ export const FORMATS: Record<FormatId, FormatSpec> = {
 /* Briefing e conceito                                                  */
 /* ------------------------------------------------------------------ */
 
-export const LAYOUT_FAMILIES = ['classico', 'destaque'] as const;
+export const LAYOUT_FAMILIES = ['classico', 'destaque', 'faixa'] as const;
 export type LayoutFamily = (typeof LAYOUT_FAMILIES)[number];
 export const BACKGROUND_STYLES = ['solido', 'circulos', 'blocos'] as const;
 export type BackgroundStyle = (typeof BACKGROUND_STYLES)[number];
