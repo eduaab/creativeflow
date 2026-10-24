@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type PreviewResult } from '../api/client';
 import { PageShell } from '../components/Layout';
-import { Badge, Button, ErrorBox, Loading, Modal, PageHeader } from '../components/ui';
+import { Badge, Button, ErrorBox, Loading, Modal, PageHeader, Toggle } from '../components/ui';
 import { useToast } from '../lib/toast';
 
 const FORMAT_ICON: Record<FormatId, string> = { feed: '1:1', retrato: '4:5', stories: '9:16', banner: '16:5', encarte: 'A4' };
@@ -34,7 +34,7 @@ export function NewCampaignPage() {
       endsAt: addDays(today, 7),
       pracas: ['PE', 'BA'],
       formats: ['feed', 'stories', 'banner', 'encarte'],
-      segments: ['geral', 'fidelidade'],
+      segments: ['geral'],
       skus: ['SKU-1001', 'SKU-1005', 'SKU-1007'],
       ctaLabel: 'Compre no app',
       ctaUrl: 'https://exemplo.com.br/ofertas',
@@ -160,13 +160,43 @@ export function NewCampaignPage() {
             </div>
             <div>
               <label className="label">Públicos</label>
-              <div className="flex flex-wrap gap-2">
-                {segments.map((s) => (
-                  <Chip key={s.id} on={b.segments.includes(s.id)} onClick={() => toggle('segments', s.id)} title={s.description}>
-                    {s.name}
-                  </Chip>
-                ))}
-              </div>
+              {(() => {
+                const singles = b.formats.filter((f) => !FORMATS[f].multiProduct).length;
+                const multis = b.formats.length - singles;
+                const perSegment = b.pracas.length * (singles * b.skus.length + multis);
+                const club = segments.find((s) => s.id === 'fidelidade');
+                const clubOn = b.segments.includes('fidelidade');
+                return (
+                  <>
+                    {club && (
+                      <div className={clsx('mb-3 flex items-start justify-between gap-4 rounded-lg border p-3', clubOn ? 'border-amber-300 bg-amber-50' : 'border-slate-200')}>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-semibold">
+                            Versão para o Clube de fidelidade
+                            {club.badge && <span className="rounded-full bg-[#FFC93C] px-2 py-0.5 text-[11px] font-semibold text-slate-900">{club.badge}</span>}
+                          </div>
+                          <p className="mt-0.5 text-xs text-slate-600">
+                            {clubOn
+                              ? `Ligado: além do público geral, gera um conjunto de peças com selo e texto para quem é do programa (+${perSegment} peças).`
+                              : `Desligado: a campanha fala só com o público geral. Ligue para gerar também a versão do Clube (+${perSegment} peças).`}
+                          </p>
+                        </div>
+                        <Toggle checked={clubOn} onChange={() => toggle('segments', 'fidelidade')} label={<span className="text-xs font-medium">{clubOn ? 'Incluir' : 'Não incluir'}</span>} />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {segments
+                        .filter((s) => s.id !== 'fidelidade')
+                        .map((s) => (
+                          <Chip key={s.id} on={b.segments.includes(s.id)} onClick={() => toggle('segments', s.id)} title={s.description}>
+                            {s.name}
+                          </Chip>
+                        ))}
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-slate-500">Cada público selecionado gera um conjunto completo de peças ({perSegment} por público), com textos adaptados pela IA.</p>
+                  </>
+                );
+              })()}
             </div>
             <div>
               <label className="label">Formatos e canais</label>
