@@ -10,7 +10,7 @@ import { estimateTextHeight } from './text';
  */
 
 export type Severity = 'info' | 'alerta' | 'critico';
-export type RuleCategory = 'comercial' | 'marca' | 'formato' | 'regulatorio';
+export type RuleCategory = 'comercial' | 'marca' | 'formato' | 'regulatorio' | 'semantica';
 
 export interface RuleDefinition {
   id: string;
@@ -98,6 +98,7 @@ export const RULES: RuleDefinition[] = [
   { id: 'REG-001', category: 'regulatorio', title: 'Medicamento sob prescrição', severity: 'critico', description: 'Comunicação ao público geral de medicamento sob prescrição não é suportada pela plataforma.' },
   { id: 'REG-002', category: 'regulatorio', title: 'Advertência de MIP', severity: 'critico', description: 'Peças com medicamento isento de prescrição exibem a advertência configurada.' },
   { id: 'REG-003', category: 'regulatorio', title: 'Alegações de saúde autorizadas', severity: 'alerta', description: 'Alegações fora da lista autorizada do produto exigem revisão especializada.' },
+  { id: 'IA-001', category: 'semantica', title: 'Revisão semântica da IA', severity: 'alerta', description: 'A IA lê os textos e aponta riscos que regras fixas não pegam: alegação de saúde disfarçada, promessa comercial implícita, tom fora da marca, estereótipo, incoerência e remédio direcionado a crianças. Só manda para revisão; nunca libera nem bloqueia.' },
   { id: 'REG-004', category: 'regulatorio', title: 'Medicamento e público infantil', severity: 'alerta', description: 'Comunicação de medicamento para público que envolve crianças exige revisão especializada.' },
 ];
 
@@ -158,6 +159,8 @@ export function colorBehind(doc: CreativeDoc, layer: Layer): string {
 export interface ValidateOptions {
   config?: RulesConfig;
   segment?: Segment;
+  /** Resultados extras já calculados (ex.: revisão semântica da IA, IA-001). */
+  extra?: RuleResult[];
 }
 
 export function validateCreative(doc: CreativeDoc, ctx: RenderContext, opts: ValidateOptions = {}): ValidationReport {
@@ -348,6 +351,9 @@ export function validateCreative(doc: CreativeDoc, ctx: RenderContext, opts: Val
   const drugs = products.filter((p) => p.category === 'mip' || p.category === 'rx');
   const childOk = !(drugs.length && opts.segment?.involvesChildren);
   add('REG-004', childOk, childOk ? 'Público compatível.' : `Medicamento comunicado para "${opts.segment?.name}". Exige revisão especializada.`);
+
+  // IA-001 só pode endurecer: nunca entra como crítico.
+  for (const r of opts.extra ?? []) results.push(r.severity === 'critico' ? { ...r, severity: 'alerta' } : r);
 
   const counts: Record<Severity, number> = { info: 0, alerta: 0, critico: 0 };
   for (const r of results) if (!r.passed) counts[r.severity]++;

@@ -11,6 +11,7 @@ import {
   buildCreativeDoc,
   buildSeedOffers,
   composeMessages,
+  semanticResults,
   defaultMessages,
   validateMessages,
   deriveStatus,
@@ -184,5 +185,38 @@ describe('textos por canal', () => {
     expect(c.whatsapp).toContain('R$');
     expect(c.whatsapp).toContain(DEFAULT_RULES_CONFIG.mipWarning);
     expect(c.whatsapp).toContain('Ofertas válidas');
+  });
+});
+
+describe('revisão semântica da IA (IA-001)', () => {
+  const check = {
+    hash: 'h',
+    provider: 'openai',
+    fallback: false,
+    error: null,
+    createdAt: '',
+    dismissed: {} as Record<string, { by: string; reason: string; at: string }>,
+    findings: [
+      { id: 'f1', ref: 'v:geral:subheadline', category: 'alegacao_saude' as const, excerpt: 'adeus à dor', explanation: 'x', suggestion: null },
+      { id: 'f2', ref: 'v:geral:messages.whatsapp', category: 'tom_de_voz' as const, excerpt: 'corra', explanation: 'y', suggestion: null },
+    ],
+  };
+  it('apontamento vira alerta na camada certa, só para o público afetado', () => {
+    const r = semanticResults(check, { segmentId: 'geral', format: 'feed' });
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ ruleId: 'IA-001', passed: false, severity: 'alerta', layerId: 'subheadline' });
+    expect(semanticResults(check, { segmentId: 'fidelidade', format: 'feed' })[0].passed).toBe(true);
+  });
+  it('apontamento descartado pelo revisor deixa de contar', () => {
+    const r = semanticResults({ ...check, dismissed: { f1: { by: 'u', reason: 'ok', at: '' } } }, { segmentId: 'geral', format: 'feed' });
+    expect(r.every((x) => x.passed)).toBe(true);
+  });
+  it('IA nunca bloqueia: resultado crítico é rebaixado para alerta e a peça derivada perde a herança', () => {
+    const doc = build('feed', ['SKU-1001']);
+    const extra = [{ ...semanticResults(check, { segmentId: 'geral', format: 'feed' })[0], severity: 'critico' as const }];
+    const report = validateCreative(doc, ctxFor('PE', ['SKU-1001']), { extra });
+    expect(report.passed).toBe(true);
+    expect(report.counts.alerta).toBe(1);
+    expect(deriveStatus({ origin: 'derivada', validation: report, conceptApproved: true })).toBe('aguardando_revisao');
   });
 });
