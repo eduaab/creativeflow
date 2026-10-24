@@ -103,15 +103,21 @@ export const RULES: RuleDefinition[] = [
 
 const DEF = new Map(RULES.map((r) => [r.id, r]));
 
+/** Monta um resultado de regra a partir do catálogo (usado também pelos textos de canal). */
+export function ruleResult(ruleId: string, passed: boolean, message: string, layerId?: string, severity?: Severity): RuleResult {
+  const d = DEF.get(ruleId)!;
+  return { ruleId, category: d.category, title: d.title, severity: severity ?? d.severity, passed, message, layerId };
+}
+
 const CONTENT_ROLES: LayerRole[] = ['headline', 'subheadline', 'cta', 'price', 'product-name', 'validity', 'legal', 'logo', 'badge', 'extra-text', 'product-image'];
 const CRITICAL_IF_OUTSIDE: LayerRole[] = ['price', 'legal', 'logo', 'validity'];
-const COMMERCIAL_IN_TEXT = /(r\$\s?\d)|(\d+[.,]\d{2}\b)|(\d{1,3}\s?%)|(\bgr[aá]tis\b)|(\bleve\s+\d+\s+pague\s+\d+\b)|(\bpor apenas\b)|(\bdesconto de\b)|(\bfrete gr[aá]tis\b)/i;
+export const COMMERCIAL_IN_TEXT = /(r\$\s?\d)|(\d+[.,]\d{2}\b)|(\d{1,3}\s?%)|(\bgr[aá]tis\b)|(\bleve\s+\d+\s+pague\s+\d+\b)|(\bpor apenas\b)|(\bdesconto de\b)|(\bfrete gr[aá]tis\b)/i;
 
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-function termIn(text: string, term: string, prefix = false): boolean {
+export function termIn(text: string, term: string, prefix = false): boolean {
   const t = normalize(text);
   const n = normalize(term);
   if (n.includes(' ') || n.includes('%')) return t.includes(n);

@@ -188,6 +188,25 @@ export const BriefingSchema = z.object({
 });
 export type Briefing = z.infer<typeof BriefingSchema>;
 
+/** Textos curtos por canal (app, e-mail, WhatsApp). Preço e vigência entram pelo sistema. */
+export const MESSAGE_LIMITS = { pushTitle: 40, pushBody: 110, emailSubject: 60, emailPreheader: 90, whatsapp: 320 } as const;
+export type MessageField = keyof typeof MESSAGE_LIMITS;
+export const MESSAGE_LABELS: Record<MessageField, string> = {
+  pushTitle: 'Push — título',
+  pushBody: 'Push — texto',
+  emailSubject: 'E-mail — assunto',
+  emailPreheader: 'E-mail — pré-cabeçalho',
+  whatsapp: 'WhatsApp — mensagem',
+};
+export const ChannelMessagesSchema = z.object({
+  pushTitle: z.string().min(2).max(MESSAGE_LIMITS.pushTitle),
+  pushBody: z.string().min(2).max(MESSAGE_LIMITS.pushBody),
+  emailSubject: z.string().min(2).max(MESSAGE_LIMITS.emailSubject),
+  emailPreheader: z.string().min(2).max(MESSAGE_LIMITS.emailPreheader),
+  whatsapp: z.string().min(10).max(MESSAGE_LIMITS.whatsapp),
+});
+export type ChannelMessages = z.infer<typeof ChannelMessagesSchema>;
+
 export const CopyVariantSchema = z.object({
   segmentId: z.string(),
   headline: z.string().min(3).max(80),
@@ -195,6 +214,7 @@ export const CopyVariantSchema = z.object({
   subheadline: z.string().min(3).max(140),
   cta: z.string().min(2).max(24),
   badge: z.string().max(24).nullable(),
+  messages: ChannelMessagesSchema.optional(),
 });
 export type CopyVariant = z.infer<typeof CopyVariantSchema>;
 

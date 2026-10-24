@@ -10,6 +10,9 @@ import {
   applyOps,
   buildCreativeDoc,
   buildSeedOffers,
+  composeMessages,
+  defaultMessages,
+  validateMessages,
   deriveStatus,
   filterOps,
   validateCreative,
@@ -162,5 +165,24 @@ describe('aprovação por conceito + exceção', () => {
   it('crítico bloqueia mesmo com aprovação registrada', () => {
     const bad = { ...ok, passed: false, counts: { ...ok.counts, critico: 1 } };
     expect(deriveStatus({ origin: 'ia', validation: bad, conceptApproved: true, decisionForVersion: 'aprovado' })).toBe('bloqueado');
+  });
+});
+
+describe('textos por canal', () => {
+  const msgs = defaultMessages(variant);
+  it('reserva respeita os limites e passa nas regras', () => {
+    expect(validateMessages(msgs, [products['SKU-1001']])).toEqual([]);
+  });
+  it('preço digitado no texto do canal é bloqueio crítico', () => {
+    const r = validateMessages({ ...msgs, pushBody: 'Só hoje por R$ 9,90' }, [products['SKU-1001']]);
+    expect(r.some((x) => x.ruleId === 'COM-004' && x.severity === 'critico')).toBe(true);
+  });
+  it('WhatsApp final recebe preço e vigência do cadastro, advertência de MIP e ignora SKU sem oferta', () => {
+    const c = composeMessages(msgs, ctxFor('CE', ['SKU-1003', 'SKU-1007']), ['SKU-1003', 'SKU-1007'], 'https://exemplo.com.br');
+    expect(c.missing).toHaveLength(1);
+    expect(c.offerLines).toHaveLength(1);
+    expect(c.whatsapp).toContain('R$');
+    expect(c.whatsapp).toContain(DEFAULT_RULES_CONFIG.mipWarning);
+    expect(c.whatsapp).toContain('Ofertas válidas');
   });
 });

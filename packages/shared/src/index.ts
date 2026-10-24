@@ -8,3 +8,4 @@ export * from './patch';
 export * from './rules';
 export * from './governance';
 export * from './seed-data';
+export * from './messages';
