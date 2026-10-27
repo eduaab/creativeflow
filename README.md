@@ -4,7 +4,7 @@ Protótipo funcional para o desafio **Creative AI — marketing em escala com in
 
 ## Sobre o projeto
 
-O CreativeFlow AI nasceu de um problema simples de enunciar e difícil de resolver: a demanda por conteúdo cresce mais rápido do que a capacidade das equipes. No varejo farmacêutico, uma única campanha precisa de versões para cada formato, canal, público e estado. Cada adaptação feita à mão consome tempo e abre espaço para erros caros, como um preço de outra praça, uma oferta vencida ou um remédio sem a advertência obrigatória.
+O CreativeFlow AI nasceu de um problema simples de enunciar e difícil de resolver: a demanda por conteúdo cresce mais rápido do que a capacidade das equipes. No marketing de varejo, uma única campanha precisa de versões para cada formato, canal, público e estado. Cada adaptação feita à mão consome tempo e abre espaço para erros caros, como um preço de outra praça, uma oferta vencida ou um remédio sem a advertência obrigatória.
 
 A solução divide o trabalho em três papéis: a IA escreve, a marca monta, e as regras e as pessoas decidem. A partir de um briefing, a IA cria o conceito da campanha e os textos de cada público, inclusive para push, e-mail e WhatsApp. Templates da identidade visual montam automaticamente todas as peças (feed, stories, banner e encarte), e preço, vigência e advertências vêm direto do cadastro de ofertas, travados contra edição. A equipe pode ajustar qualquer peça à mão ou pedir à IA em português, sempre com prévia antes de aplicar.
 
