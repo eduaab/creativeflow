@@ -2,10 +2,21 @@
 
 Protótipo funcional para o desafio **Creative AI — marketing em escala com inteligência artificial** (Hackabusiness 2026).
 
+## Sobre o projeto
+
+O CreativeFlow AI nasceu de um problema simples de enunciar e difícil de resolver: a demanda por conteúdo cresce mais rápido do que a capacidade das equipes. No varejo farmacêutico, uma única campanha precisa de versões para cada formato, canal, público e estado. Cada adaptação feita à mão consome tempo e abre espaço para erros caros, como um preço de outra praça, uma oferta vencida ou um remédio sem a advertência obrigatória.
+
+A solução divide o trabalho em três papéis: a IA escreve, a marca monta, e as regras e as pessoas decidem. A partir de um briefing, a IA cria o conceito da campanha e os textos de cada público, inclusive para push, e-mail e WhatsApp. Templates da identidade visual montam automaticamente todas as peças (feed, stories, banner e encarte), e preço, vigência e advertências vêm direto do cadastro de ofertas, travados contra edição. A equipe pode ajustar qualquer peça à mão ou pedir à IA em português, sempre com prévia antes de aplicar.
+
+A governança faz parte do produto. Regras automáticas bloqueiam preço digitado, oferta vencida, alegação de saúde proibida e remédio sem advertência, e uma revisão semântica da IA aponta riscos que regras fixas não pegam. O revisor aprova o conceito uma vez, e as peças sem pendência são liberadas automaticamente; só as exceções vão para a fila. Na exportação, o sistema confere tudo de novo e gera um arquivo ZIP: ao extrair, a equipe encontra as peças em PNG, organizadas por estado e formato e prontas para publicar, junto com o relatório de quem aprovou cada uma, qual oferta foi usada e os textos finais de cada canal. Também é possível baixar uma peça avulsa direto do editor.
+
+O MVP funciona de ponta a ponta com dados sintéticos e marca construída a partir de materiais públicos. A IA é plugável (Gemini, OpenAI, Azure OpenAI ou Anthropic), sem necessidade de treinar um modelo próprio. Catálogo, ofertas, login e notificações no Teams foram desenhados para trocar pelos sistemas reais do cliente sem refazer a solução. O resultado é mais escala, a mesma marca e controle real: a IA acelera o processo, e as pessoas seguem decidindo.
+
+
 > Um briefing estruturado vira dezenas de peças multicanal (por praça, público e formato), com a identidade da marca preservada e **nada exportado sem conformidade**.
 > A IA escreve e sugere; templates da marca montam; regras determinísticas e pessoas decidem.
 
-⚠️ **Repositório confidencial.** Mantenha-o privado. Todos os produtos, marcas, preços e o manual de marca são **sintéticos**. O código não usa nem presume dados internos da empresa parceira.
+ℹ️ **Dados sintéticos.** Todos os produtos, marcas, preços, usuários e o manual de marca são fictícios. O repositório não contém dados internos de empresas nem de clientes.
 
 ---
 
