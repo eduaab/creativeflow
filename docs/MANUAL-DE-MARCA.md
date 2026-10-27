@@ -3,8 +3,8 @@
 O desafio pede um manual construído **a partir da observação de materiais públicos**, com o critério documentado.
 Este arquivo é esse registro. O código lê **apenas** `packages/shared/src/brand/brand.ts`; trocar a marca é editar esse arquivo.
 
-> **Estado atual (`2026.10-estudo-v2`)**: paleta, tipografia, grafismos e tom **aproximados** da identidade pública do cliente
-> (versão apresentada em 2025). **Nome ("Farmácia Exemplo"), logo, slogans, produtos e preços continuam fictícios.**
+> **Estado atual (`2026.10-estudo-v2`)**: paleta, tipografia, grafismos e tom **aproximados** a partir do estudo da
+> identidade visual pública da marca. **Nome ("Farmácia Exemplo"), logo, slogans, produtos e preços continuam fictícios.**
 > Nada aqui é arquivo oficial, vetor de logo ou diretriz interna da marca.
 
 ## 1. Por que sintético, e por que "inspirado"
@@ -17,37 +17,38 @@ Este arquivo é esse registro. O código lê **apenas** `packages/shared/src/bra
 
 ## 2. Método
 
-1. **Coleta:** reportagens de lançamento da identidade visual, página pública do programa de fidelidade, notícias de campanhas (aniversário, datas regionais, varejo físico) e uma referência pública dos códigos de cor do logo anterior.
+1. **Coleta:** materiais públicos de imprensa sobre a identidade visual e as campanhas da marca, e páginas públicas do site institucional (consultados em 24/10/2026).
 2. **Extração:** cores, forma do símbolo, característica da tipografia, estilo de grafismo e fotografia, tom de voz e vocabulário de chamada para ação.
 3. **Consolidação:** só entra no manual o que aparece em mais de uma fonte. O que é dedução nossa está marcado como **aproximação**.
 4. **Limite:** sem logos vetorizados, sem fontes proprietárias, sem slogans reais nas peças.
 
-## 3. Observações públicas
+## 3. O que o estudo identificou
 
-| # | O que foi observado | Fonte | Como virou token ou regra |
-|---|---|---|---|
-| 1 | Identidade de 2025 mantém **vermelho e azul**, agora em tons **mais vivos e luminosos** | Grandes Nomes da Propaganda; Central do Varejo | `primary` azul vivo e `accent` vermelho vivo |
-| 2 | Códigos do logo anterior: azul `#175FA6`, vermelho `#ED1C24` | WhatTheLogo | Ponto de partida; clareamos o azul e ajustamos o vermelho para contraste com branco ≥ 4,5:1 |
-| 3 | Símbolo com **traços arredondados**, sugerindo leveza, empatia e proximidade; o **contorno** do símbolo virou elemento da identidade | idem 1 | Logo fictício com disco + contorno; fundos com círculos; cantos arredondados no preço e no CTA |
-| 4 | Tipografia **arredondada, não itálica**, com contraformas amplas para leitura em tamanho pequeno | idem 1 | Títulos em **Nunito** (livre, arredondada), substituta da fonte proprietária; textos em Inter |
-| 5 | Fotografia **quente e vibrante**, vida real, fora do ambiente da farmácia | idem 1 | Diretriz para a futura geração de fundos; hoje os fundos são procedurais |
-| 6 | Tom **acolhedor, humano, otimista, "alto astral"**; "levar saúde com amor"; foco em proximidade, cuidado e saúde acessível | idem 1; Marcas pelo Mundo (posicionamento de 2026) | `BRAND_VOICE.tone` e exemplos aprovados (todos escritos por nós) |
-| 7 | Fidelidade com **níveis** e ofertas personalizadas pelo histórico (CPF) | Página pública do programa; Meio & Mensagem | Público "fidelidade" e selo em **ouro** (`sun`); o nome continua fictício ("Clube Exemplo") |
-| 8 | Campanhas sazonais e regionais (São João, Carnaval) com foco em **saúde nas festas** | Nosso Meio | Novo tema no modo demonstração ("Festa com cuidado"), sem estereótipo regional |
-| 9 | CTAs diretos e curtos ("Cadastre-se", "Comece a pontuar") | Página do programa | CTA padrão de até 3 palavras ("Compre no app") |
+| # | Observação | Como virou token ou regra |
+|---|---|---|
+| 1 | Paleta baseada em **vermelho e azul**, em tons **vivos e luminosos** | `primary` azul vivo e `accent` vermelho vivo, ajustados para contraste com branco ≥ 4,5:1 |
+| 2 | Símbolo com **traços arredondados**, sugerindo leveza, empatia e proximidade; o **contorno** do símbolo funciona como elemento gráfico | Logo fictício com disco + contorno; fundos com círculos; cantos arredondados no preço e no CTA |
+| 3 | Tipografia **arredondada, não itálica**, com contraformas amplas para leitura em tamanho pequeno | Títulos em **Nunito** (livre, arredondada); textos em Inter |
+| 4 | Fotografia **quente e vibrante**, com cenas da vida real | Diretriz para a futura geração de fundos; hoje os fundos são procedurais |
+| 5 | Tom **acolhedor, humano e otimista**, com foco em proximidade, cuidado e saúde acessível | `BRAND_VOICE.tone` e exemplos aprovados (todos escritos por nós) |
+| 6 | Programa de fidelidade com **níveis** e ofertas personalizadas pelo histórico de compra | Público "fidelidade" e selo em **ouro** (`sun`); o nome continua fictício ("Clube Exemplo") |
+| 7 | Campanhas sazonais e regionais com foco em **saúde nas festas** | Tema "Festa com cuidado" no modo demonstração, sem estereótipo regional |
+| 8 | CTAs diretos e curtos | CTA padrão de até 3 palavras ("Compre no app") |
+
+O que é dedução da equipe (por exemplo, os códigos exatos de cor) está marcado como **aproximação**: nenhum valor foi copiado de arquivo oficial.
 
 ## 4. Tokens e justificativa
 
 | Token | Valor | Contraste com branco | Por quê |
 |---|---|---|---|
-| `primary` | `#1A62C4` | 5,9:1 | Azul vivo (obs. 1 e 2); faixa, CTA, símbolo |
+| `primary` | `#1A62C4` | 5,9:1 | Azul vivo (obs. 1); faixa, CTA, símbolo |
 | `primaryDark` | `#0D3F86` | 10,1:1 | Títulos sobre fundo claro |
 | `primarySoft` | `#DCE9FB` | — | Blocos e círculos de fundo |
 | `accent` | `#E3202B` | 4,7:1 | Vermelho vivo do preço: etiqueta "De/Por" chama atenção sem perder legibilidade |
 | `accentSoft` | `#FDE1E2` | — | Círculos atrás do produto |
 | `sun` | `#FFC72C` | texto `ink` 10:1 | Selo do Clube (nível "ouro") e CTA sobre a faixa azul |
 | `ink` / `muted` | `#14213D` / `#46536B` | 16:1 / 7,8:1 | Texto e textos secundários |
-| Títulos | Nunito 700/800 | — | Arredondada, não itálica (obs. 4) |
+| Títulos | Nunito 700/800 | — | Arredondada, não itálica (obs. 3) |
 | Texto | Inter | — | Leitura em corpo pequeno (vigência, advertência) |
 
 Todas as combinações de formato × layout × fundo continuam passando nas regras de contraste e área segura (testes em `packages/shared/test`).
@@ -81,13 +82,3 @@ Termos proibidos e alegações que exigem autorização são configuráveis em *
 
 Trocar em `brand.ts`: códigos de cor exatos, fonte oficial (se licenciada para uso web), logo vetorial e exemplos de tom
 aprovados pela equipe de marca. Templates, regras, editor e IA não precisam mudar.
-
-## Fontes (acesso em 24/10/2026)
-
-- Grandes Nomes da Propaganda: nova identidade visual (02/05/2025) — <https://grandesnomesdapropaganda.com.br/anunciantes/pague-menos-apresenta-nova-identidade-visual/>
-- Central do Varejo: nova identidade visual — <https://centraldovarejo.com.br/pague-menos-apresenta-nova-identidade-visual/>
-- Marcas pelo Mundo: 45 anos e novo posicionamento (2026) — <https://marcaspelomundo.com.br/anunciantes/pague-menos-celebra-45-anos-com-juliette-e-lanca-novo-posicionamento-institucional/>
-- WhatTheLogo: cores do logo anterior — <https://whatthelogo.com/logo/farmacia-pague-menos/150984>
-- Página pública do programa de fidelidade — <https://www.paguemenos.com.br/programa-de-fidelidade>
-- Meio & Mensagem: descontos personalizados — <https://www.meioemensagem.com.br/ultimas-noticias/pague-menos-cria-programa-de-descontos-personalizados>
-- Nosso Meio: campanha de São João — <https://nossomeio.com.br/pague-menos-estreia-campanha-de-sao-joao-e-destaca-a-saude-em-momentos-de-festividades/>
